@@ -1,0 +1,10 @@
+Primary: #355485
+Primary Dark: #2a436c
+Accent: #4f90c6
+Soft Blue: #90b6d5
+Light Blue: #cbdde9
+Background: #f9fafb
+Text Gray: #6b7280
+Border Gray: #e5e7eb
+Muted Gray: #9ca3af
+White: #ffffff

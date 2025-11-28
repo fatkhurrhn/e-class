@@ -1,0 +1,50 @@
+[
+  {
+    "title": "Home Page /",
+    "path": "/"
+  },
+  {
+    "title": "Try /",
+    "path": "/try"
+  },
+  {
+    "title": "Percobaan1 /",
+    "path": "/p1"
+  },
+  {
+    "title": "Percobaan2 /",
+    "path": "/p2"
+  },
+  {
+    "title": "Percobaan3 /",
+    "path": "/p3"
+  },
+  {
+    "title": "Percobaan4 /",
+    "path": "/p4"
+  },
+  {
+    "title": "Percobaan5 /",
+    "path": "/p5"
+  },
+  {
+    "title": "Percobaan6 /",
+    "path": "/p6"
+  },
+  {
+    "title": "Percobaan7 /",
+    "path": "/p7"
+  },
+  {
+    "title": "Percobaan8 /",
+    "path": "/p8"
+  },
+  {
+    "title": "Percobaan9 /",
+    "path": "/p9"
+  },
+  {
+    "title": "Percobaan10 /",
+    "path": "/p10"
+  }
+]
