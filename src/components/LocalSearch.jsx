@@ -1,3 +1,4 @@
+// src/components/LocalSearch.jsx - Updated Version
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -9,47 +10,11 @@ export default function LocalSearch() {
     const [isLoading, setIsLoading] = useState(false);
     const [showPopup, setShowPopup] = useState(false);
 
-    // Popular searches - sesuai dengan keywords dari bab-bab
+    // Popular searches
     const popularSearches = [
-        "penjumlahan",
-        "pengurangan",
-        "bangun datar",
-        "pengukuran",
-        "diagram",
-        "bilangan",
-        "geometri",
-        "hitung cepat",
-        "bentuk",
-        "matematika",
-        "game edukasi",
-        "belajar angka"
+        "penjumlahan", "pengurangan", "bangun datar", "pengukuran",
+        "diagram", "bilangan", "geometri", "hitung cepat"
     ];
-
-    // Load data dari file json
-    useEffect(() => {
-        setIsLoading(true);
-        fetch("/src/data/searchData.json")
-            .then((res) => {
-                if (!res.ok) {
-                    throw new Error(`HTTP error! status: ${res.status}`);
-                }
-                return res.json();
-            })
-            .then((data) => {
-                // Tambahkan fallback type jika tidak ada
-                const enhancedData = data.map(item => ({
-                    ...item,
-                    type: item.type || getTypeFromPath(item.path),
-                    icon: getIconByType(item.type || getTypeFromPath(item.path))
-                }));
-                setAllData(enhancedData);
-                setIsLoading(false);
-            })
-            .catch((err) => {
-                console.error("Gagal load searchData.json", err);
-                setIsLoading(false);
-            });
-    }, []);
 
     // Helper function untuk menentukan type dari path
     function getTypeFromPath(path) {
@@ -85,6 +50,81 @@ export default function LocalSearch() {
         }
     }
 
+    // Hybrid load function untuk development dan production
+    const loadSearchData = async () => {
+        setIsLoading(true);
+        try {
+            let data = [];
+            let loaded = false;
+
+            // Coba load dari beberapa lokasi (production first)
+            const possiblePaths = [
+                '/data/searchData.json',          // Public folder (production)
+                '/src/data/searchData.json',      // Source folder (development)
+                './data/searchData.json',         // Relative path
+            ];
+
+            for (const path of possiblePaths) {
+                try {
+                    const response = await fetch(path);
+                    if (response.ok) {
+                        data = await response.json();
+                        console.log(`✅ Loaded search data from: ${path}`);
+                        loaded = true;
+                        break;
+                    }
+                } catch (err) {
+                    console.log(`⚠️ Cannot load from ${path}:`, err.message);
+                    continue;
+                }
+            }
+
+            // Jika fetch gagal semua, coba import langsung (development with Vite)
+            if (!loaded) {
+                try {
+                    console.log('🔄 Trying to import search data directly...');
+                    const searchDataModule = await import('../data/searchData.json');
+                    data = searchDataModule.default || searchDataModule;
+                    loaded = true;
+                } catch (importError) {
+                    console.error('❌ Failed to import search data:', importError);
+                }
+            }
+
+            // Fallback ke data default jika semua gagal
+            if (!loaded || !data || data.length === 0) {
+                console.warn('⚠️ Using fallback search data');
+                data = [
+                    { title: "Beranda", path: "/", type: "home", description: "Halaman utama" },
+                    { title: "Tentang", path: "/tentang", type: "about", description: "Informasi tentang platform" },
+                    { title: "Bab 4 - Mengenal Bentuk", path: "/s1/bab4", type: "chapter", description: "Belajar mengenal bentuk geometri" },
+                ];
+            }
+
+            // Enhance data dengan type, icon, dll
+            const enhancedData = data.map(item => ({
+                ...item,
+                type: item.type || getTypeFromPath(item.path),
+                icon: getIconByType(item.type || getTypeFromPath(item.path))
+            }));
+
+            setAllData(enhancedData);
+            console.log(`📊 Loaded ${enhancedData.length} search items`);
+
+        } catch (error) {
+            console.error('❌ Error loading search data:', error);
+            // Set empty array sebagai fallback
+            setAllData([]);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    // Load data saat komponen mount
+    useEffect(() => {
+        loadSearchData();
+    }, []);
+
     // Filter realtime dengan pencarian di semua field
     useEffect(() => {
         if (query.trim() === "") {
@@ -117,9 +157,9 @@ export default function LocalSearch() {
             if (item.path && item.path.toLowerCase().includes(searchTerm)) return true;
 
             return false;
-        }).slice(0, 10); // Tampilkan lebih banyak hasil
+        }).slice(0, 10);
 
-        // Sort results: exact matches first, then partial matches
+        // Sort results: exact matches first, then by type priority
         filtered.sort((a, b) => {
             const aTitleMatch = a.title.toLowerCase().includes(searchTerm);
             const bTitleMatch = b.title.toLowerCase().includes(searchTerm);
@@ -127,8 +167,14 @@ export default function LocalSearch() {
             if (aTitleMatch && !bTitleMatch) return -1;
             if (!aTitleMatch && bTitleMatch) return 1;
 
-            // Sort by type: chapter > game > other
-            const typePriority = { chapter: 1, game: 2, home: 3, about: 4, experiment: 5, page: 6 };
+            const typePriority = {
+                chapter: 1,
+                game: 2,
+                home: 3,
+                about: 4,
+                experiment: 5,
+                page: 6
+            };
             return (typePriority[a.type] || 99) - (typePriority[b.type] || 99);
         });
 
@@ -258,6 +304,7 @@ export default function LocalSearch() {
                                 <div className="p-8 text-center text-gray-600">
                                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#4f90c6] mx-auto mb-3"></div>
                                     <p>Memuat data pembelajaran...</p>
+                                    <p className="text-sm text-gray-500 mt-2">Mencari data di semua lokasi...</p>
                                 </div>
                             )}
 
@@ -270,7 +317,7 @@ export default function LocalSearch() {
                                         </svg>
                                         Hasil untuk "{query}"
                                         <span className="text-xs font-normal text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
-                                            {results.length} hasil
+                                            {results.length} hasil ditemukan
                                         </span>
                                     </h3>
 
@@ -293,7 +340,7 @@ export default function LocalSearch() {
                                                             {item.title}
                                                         </p>
                                                         {item.description && (
-                                                            <p className="text-sm text-gray-500 mt-1 line-clamp-1 text-left">
+                                                            <p className="text-sm text-gray-500 mt-1 line-clamp-1">
                                                                 {item.description}
                                                             </p>
                                                         )}
@@ -350,6 +397,7 @@ export default function LocalSearch() {
                                                          hover:to-[#90b6d5] hover:text-white rounded-xl text-sm font-medium 
                                                          text-gray-600 hover:shadow-lg transition-all duration-200 flex items-center gap-2 group"
                                             >
+                                                <span className="group-hover:scale-110 transition-transform duration-200">🔍</span>
                                                 {search}
                                             </button>
                                         ))}
@@ -357,7 +405,7 @@ export default function LocalSearch() {
                                 </div>
                             )}
 
-                            {/* Recent Searches / Quick Access */}
+                            {/* Quick Access */}
                             <div className="p-6 bg-gray-50 border-t border-gray-200">
                                 <div className="flex justify-between items-center mb-4">
                                     <h3 className="font-semibold text-gray-800 px-2">Akses Cepat</h3>
@@ -367,7 +415,12 @@ export default function LocalSearch() {
                                     {/* Chapter Access */}
                                     <button
                                         onClick={() => {
-                                            navigate('/s1/bab1');
+                                            const chapterItem = allData.find(item => item.type === 'chapter');
+                                            if (chapterItem) {
+                                                navigate(chapterItem.path);
+                                            } else {
+                                                navigate('/s1/bab4');
+                                            }
                                             closeSearchPopup();
                                         }}
                                         className="flex items-center gap-3 p-4 rounded-xl bg-white hover:bg-gray-100 
@@ -377,20 +430,19 @@ export default function LocalSearch() {
                                             📚
                                         </div>
                                         <div className="text-left">
-                                            <p className="font-semibold">Bab 1 - Membilang</p>
-                                            <p className="text-xs text-gray-500">Angka 1-10</p>
+                                            <p className="font-semibold">Bab Pembelajaran</p>
+                                            <p className="text-xs text-gray-500">Materi interaktif</p>
                                         </div>
                                     </button>
 
                                     {/* Game Access */}
                                     <button
                                         onClick={() => {
-                                            // Navigate ke game pertama atau game page
                                             const gameItem = allData.find(item => item.type === 'game');
                                             if (gameItem) {
                                                 navigate(gameItem.path);
                                             } else {
-                                                navigate('/games');
+                                                navigate('/s1/bab4');
                                             }
                                             closeSearchPopup();
                                         }}
@@ -402,7 +454,7 @@ export default function LocalSearch() {
                                         </div>
                                         <div className="text-left">
                                             <p className="font-semibold">Game Edukatif</p>
-                                            <p className="text-xs text-gray-500">50+ game matematika</p>
+                                            <p className="text-xs text-gray-500">Belajar sambil bermain</p>
                                         </div>
                                     </button>
                                 </div>

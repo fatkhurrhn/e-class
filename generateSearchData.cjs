@@ -3,8 +3,20 @@ const fs = require("fs");
 const path = require("path");
 
 const pagesDir = path.join(__dirname, "src/pages");
-const outputFile = path.join(__dirname, "src/data/searchData.json");
+const publicOutputFile = path.join(__dirname, "public/data/searchData.json");
+const srcOutputFile = path.join(__dirname, "src/data/searchData.json");
 
+// Format nama title dari nama komponen
+function formatTitle(name) {
+    return name
+        .replace(/([A-Z])/g, " $1")
+        .replace(/Index/g, "")
+        .replace(/Page/g, "")
+        .trim()
+        .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+// Extract data dari komentar @searchdata
 function extractSearchData(filePath) {
     const content = fs.readFileSync(filePath, "utf8");
 
@@ -64,59 +76,65 @@ function extractSearchData(filePath) {
     return result;
 }
 
-function formatTitle(name) {
-    return name
-        .replace(/([A-Z])/g, " $1")
-        .replace(/Index/g, "")
-        .replace(/Page/g, "")
-        .trim()
-        .replace(/\b\w/g, (c) => c.toUpperCase());
+// Fungsi scan directory recursive
+function scanDirectory(dir, basePath = "", results) {
+    const files = fs.readdirSync(dir);
+
+    files.forEach(file => {
+        const fullPath = path.join(dir, file);
+        const stat = fs.statSync(fullPath);
+
+        if (stat.isDirectory()) {
+            // Rekursif untuk subfolder
+            scanDirectory(fullPath, `${basePath}/${file}`, results);
+        } else if (file.endsWith('.jsx')) {
+            // Extract data dari file
+            const data = extractSearchData(fullPath);
+
+            // Jika path tidak di-set di komentar, generate dari folder structure
+            if (!data.path && basePath) {
+                const fileName = file.replace('.jsx', '').replace('Index', '');
+                data.path = `${basePath}${fileName ? `/${fileName}` : ''}`.toLowerCase();
+
+                // Clean up path
+                if (data.path.endsWith('/index')) {
+                    data.path = data.path.replace('/index', '');
+                }
+                if (data.path.startsWith('//')) {
+                    data.path = data.path.substring(1);
+                }
+            }
+
+            // Set default title jika tidak ada
+            if (!data.title) {
+                const componentName = file.replace('.jsx', '');
+                data.title = formatTitle(componentName);
+                if (basePath.includes('bab')) {
+                    const babMatch = basePath.match(/bab(\d+)/i);
+                    if (babMatch) {
+                        data.title = `Bab ${babMatch[1]} - ${data.title}`;
+                    }
+                }
+            }
+
+            results.push(data);
+        }
+    });
 }
 
+// Fungsi utama generate data
 function generateFromPages() {
     const results = [];
 
     // Scan semua file .jsx di folder pages dan subfolders
-    function scanDirectory(dir, basePath = "") {
-        const files = fs.readdirSync(dir);
-
-        files.forEach(file => {
-            const fullPath = path.join(dir, file);
-            const stat = fs.statSync(fullPath);
-
-            if (stat.isDirectory()) {
-                // Rekursif untuk subfolder
-                scanDirectory(fullPath, `${basePath}/${file}`);
-            } else if (file.endsWith('.jsx')) {
-                // Extract data dari file
-                const data = extractSearchData(fullPath);
-
-                // Jika path tidak di-set di komentar, generate dari folder structure
-                if (!data.path && basePath) {
-                    const fileName = file.replace('.jsx', '').replace('Index', '');
-                    data.path = `${basePath}${fileName ? `/${fileName}` : ''}`.toLowerCase();
-                }
-
-                // Set default title jika tidak ada
-                if (!data.title) {
-                    const componentName = file.replace('.jsx', '');
-                    data.title = formatTitle(componentName);
-                    if (basePath.includes('bab')) {
-                        data.title = `Bab ${basePath.match(/bab(\d+)/)?.[1] || ''} - ${data.title}`;
-                    }
-                }
-
-                results.push(data);
-            }
-        });
-    }
-
-    scanDirectory(pagesDir);
+    scanDirectory(pagesDir, "", results);
 
     // Tambahkan juga dari App.jsx untuk routes yang tidak ada di pages folder
     const appFile = path.join(__dirname, "src/App.jsx");
     if (fs.existsSync(appFile)) {
         const content = fs.readFileSync(appFile, "utf8");
+
+        // Regex untuk match routes
         const routeRegex = /<Route\s+path="([^"]+)"\s+element={<([^}]+)>}/g;
         let match;
 
@@ -124,7 +142,8 @@ function generateFromPages() {
             const url = match[1];
             const component = match[2];
 
-            if (url === "*" || url === "/comingsoon") continue;
+            // Skip catch-all routes
+            if (url === "*" || url === "/comingsoon" || url.includes(":")) continue;
 
             // Cek apakah route sudah ada di results
             const exists = results.find(r => r.path === url);
@@ -142,17 +161,53 @@ function generateFromPages() {
 
     // Sort results: bab dulu, kemudian alphabetically
     results.sort((a, b) => {
-        const aIsBab = a.path.includes('/bab');
-        const bIsBab = b.path.includes('/bab');
+        const aIsBab = a.path.includes('/bab') || a.type === 'chapter';
+        const bIsBab = b.path.includes('/bab') || b.type === 'chapter';
 
         if (aIsBab && !bIsBab) return -1;
         if (!aIsBab && bIsBab) return 1;
 
+        // Prioritize home page
+        if (a.path === '/') return -1;
+        if (b.path === '/') return 1;
+
         return a.title.localeCompare(b.title);
     });
 
-    fs.writeFileSync(outputFile, JSON.stringify(results, null, 2));
-    console.log(`✅ Generated ${results.length} search items in searchData.json`);
+    // Buat folder public/data jika belum ada
+    const publicDataDir = path.dirname(publicOutputFile);
+    if (!fs.existsSync(publicDataDir)) {
+        fs.mkdirSync(publicDataDir, {
+            recursive: true
+        });
+    }
+
+    // Buat folder src/data jika belum ada
+    const srcDataDir = path.dirname(srcOutputFile);
+    if (!fs.existsSync(srcDataDir)) {
+        fs.mkdirSync(srcDataDir, {
+            recursive: true
+        });
+    }
+
+    // Write to both locations
+    fs.writeFileSync(publicOutputFile, JSON.stringify(results, null, 2));
+    fs.writeFileSync(srcOutputFile, JSON.stringify(results, null, 2));
+
+    console.log(`✅ Generated ${results.length} search items`);
+    console.log(`📁 Public folder: ${publicOutputFile}`);
+    console.log(`📁 Source folder: ${srcOutputFile}`);
+    console.log(`📊 Sample data:`);
+    results.slice(0, 3).forEach(item => {
+        console.log(`   • ${item.title} (${item.path})`);
+    });
 }
 
-generateFromPages();
+// Jalankan generator
+try {
+    generateFromPages();
+    console.log('🎉 Search data generated successfully!');
+} catch (error) {
+    console.error('❌ Error generating search data:', error);
+    process.exit(1);
+}
