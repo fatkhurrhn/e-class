@@ -15,6 +15,8 @@ import Percobaan7 from './pages/percobaan/Percobaan7';
 import Percobaan8 from './pages/percobaan/Percobaan8';
 import Percobaan9 from './pages/percobaan/Percobaan9';
 import Percobaan10 from './pages/percobaan/Percobaan10';
+import About from './pages/About';
+import IndexBab4 from './pages/bab4/IndexBab4';
 function App() {
   return (
     <Router>
@@ -22,6 +24,9 @@ function App() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/try" element={<Try />} />
+        <Route path="/tentang" element={<About />} />
+
+        <Route path="/s1/bab4" element={<IndexBab4 />} />
         
         <Route path="/p1" element={<Percobaan1 />} />
         <Route path="/p2" element={<Percobaan2 />} />

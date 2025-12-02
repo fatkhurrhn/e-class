@@ -9,19 +9,40 @@ export default function LocalSearch() {
     const [isLoading, setIsLoading] = useState(false);
     const [showPopup, setShowPopup] = useState(false);
 
-    // Popular searches
+    // Popular searches - sesuai dengan keywords dari bab-bab
     const popularSearches = [
-        "penjumlahan", "pengurangan", "bangun datar", "pengukuran",
-        "diagram", "bilangan", "geometri", "hitung cepat"
+        "penjumlahan",
+        "pengurangan",
+        "bangun datar",
+        "pengukuran",
+        "diagram",
+        "bilangan",
+        "geometri",
+        "hitung cepat",
+        "bentuk",
+        "matematika",
+        "game edukasi",
+        "belajar angka"
     ];
 
     // Load data dari file json
     useEffect(() => {
         setIsLoading(true);
         fetch("/src/data/searchData.json")
-            .then((res) => res.json())
+            .then((res) => {
+                if (!res.ok) {
+                    throw new Error(`HTTP error! status: ${res.status}`);
+                }
+                return res.json();
+            })
             .then((data) => {
-                setAllData(data);
+                // Tambahkan fallback type jika tidak ada
+                const enhancedData = data.map(item => ({
+                    ...item,
+                    type: item.type || getTypeFromPath(item.path),
+                    icon: getIconByType(item.type || getTypeFromPath(item.path))
+                }));
+                setAllData(enhancedData);
                 setIsLoading(false);
             })
             .catch((err) => {
@@ -30,19 +51,86 @@ export default function LocalSearch() {
             });
     }, []);
 
-    // Filter realtime
+    // Helper function untuk menentukan type dari path
+    function getTypeFromPath(path) {
+        if (path.includes('/bab') || path.includes('/s1/bab')) return 'chapter';
+        if (path === '/' || path === '/beranda') return 'home';
+        if (path === '/tentang' || path.includes('about')) return 'about';
+        if (path.includes('/game') || path.includes('/play')) return 'game';
+        if (path.includes('/percobaan') || path.includes('/p')) return 'experiment';
+        return 'page';
+    }
+
+    // Helper function untuk menentukan icon berdasarkan type
+    function getIconByType(type) {
+        switch (type) {
+            case 'chapter': return '📚';
+            case 'game': return '🎮';
+            case 'home': return '🏠';
+            case 'about': return '🏫';
+            case 'experiment': return '🔬';
+            default: return '📄';
+        }
+    }
+
+    // Helper function untuk menentukan color berdasarkan type
+    function getColorByType(type) {
+        switch (type) {
+            case 'chapter': return 'from-blue-500 to-cyan-500';
+            case 'game': return 'from-green-500 to-emerald-500';
+            case 'home': return 'from-purple-500 to-pink-500';
+            case 'about': return 'from-orange-500 to-red-500';
+            case 'experiment': return 'from-indigo-500 to-purple-500';
+            default: return 'from-gray-500 to-gray-600';
+        }
+    }
+
+    // Filter realtime dengan pencarian di semua field
     useEffect(() => {
         if (query.trim() === "") {
             setResults([]);
             return;
         }
 
-        const filtered = allData.filter((item) =>
-            item.title.toLowerCase().includes(query.toLowerCase()) ||
-            item.keywords?.some(keyword =>
-                keyword.toLowerCase().includes(query.toLowerCase())
-            )
-        ).slice(0, 8);
+        const searchTerm = query.toLowerCase();
+        const filtered = allData.filter((item) => {
+            // Search in title
+            if (item.title && item.title.toLowerCase().includes(searchTerm)) return true;
+
+            // Search in description
+            if (item.description && item.description.toLowerCase().includes(searchTerm)) return true;
+
+            // Search in keywords (array)
+            if (item.keywords && Array.isArray(item.keywords)) {
+                if (item.keywords.some(keyword =>
+                    keyword.toLowerCase().includes(searchTerm)
+                )) return true;
+            }
+
+            // Search in chapter
+            if (item.chapter && item.chapter.toLowerCase().includes(searchTerm)) return true;
+
+            // Search in type
+            if (item.type && item.type.toLowerCase().includes(searchTerm)) return true;
+
+            // Search in path (as last resort)
+            if (item.path && item.path.toLowerCase().includes(searchTerm)) return true;
+
+            return false;
+        }).slice(0, 10); // Tampilkan lebih banyak hasil
+
+        // Sort results: exact matches first, then partial matches
+        filtered.sort((a, b) => {
+            const aTitleMatch = a.title.toLowerCase().includes(searchTerm);
+            const bTitleMatch = b.title.toLowerCase().includes(searchTerm);
+
+            if (aTitleMatch && !bTitleMatch) return -1;
+            if (!aTitleMatch && bTitleMatch) return 1;
+
+            // Sort by type: chapter > game > other
+            const typePriority = { chapter: 1, game: 2, home: 3, about: 4, experiment: 5, page: 6 };
+            return (typePriority[a.type] || 99) - (typePriority[b.type] || 99);
+        });
 
         setResults(filtered);
     }, [query, allData]);
@@ -85,7 +173,7 @@ export default function LocalSearch() {
 
         if (showPopup) {
             document.addEventListener('keydown', handleEscape);
-            document.body.style.overflow = 'hidden'; // Prevent background scroll
+            document.body.style.overflow = 'hidden';
         }
 
         return () => {
@@ -181,6 +269,9 @@ export default function LocalSearch() {
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                         </svg>
                                         Hasil untuk "{query}"
+                                        <span className="text-xs font-normal text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                                            {results.length} hasil
+                                        </span>
                                     </h3>
 
                                     {results.length > 0 ? (
@@ -188,34 +279,40 @@ export default function LocalSearch() {
                                             {results.map((item, index) => (
                                                 <div
                                                     key={index}
-                                                    className="flex items-center gap-4 p-1 rounded-xl hover:bg-gray-50 
+                                                    className="flex items-center gap-4 p-4 rounded-xl hover:bg-gray-50 
                                                              cursor-pointer transition-all duration-200 group border border-transparent hover:border-gray-200"
                                                     onClick={() => handleResultClick(item)}
                                                 >
-                                                    <div className={`flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center 
-                                                                  text-white text-lg ${item.type === 'chapter' ? 'bg-gradient-to-r from-blue-500 to-cyan-500' :
-                                                            item.type === 'game' ? 'bg-gradient-to-r from-green-500 to-emerald-500' :
-                                                                'bg-gradient-to-r from-purple-500 to-pink-500'
-                                                        }`}>
-                                                        {item.type === 'chapter' ? '📚' :
-                                                            item.type === 'game' ? '🎮' : '📖'}
+                                                    <div className={`flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center 
+                                                                  text-white text-lg bg-gradient-to-r ${getColorByType(item.type)}`}>
+                                                        {item.icon || '📄'}
                                                     </div>
                                                     <div className="flex-1 min-w-0">
                                                         <p className="text-left font-semibold text-gray-800 text-base group-hover:text-[#2a436c] 
-                                                                    transition-colors line-clamp-1">
+                                                                    transition-colors">
                                                             {item.title}
                                                         </p>
-                                                        {/* <p className="text-sm text-gray-500 flex items-center gap-2 mt-1">
-                                                            <span className="capitalize bg-gray-100 px-2 py-1 rounded-full text-xs">
+                                                        {item.description && (
+                                                            <p className="text-sm text-gray-500 mt-1 line-clamp-1 text-left">
+                                                                {item.description}
+                                                            </p>
+                                                        )}
+                                                        <div className="flex items-center gap-2 mt-1">
+                                                            <span className="text-xs font-medium px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full capitalize">
                                                                 {item.type}
                                                             </span>
                                                             {item.chapter && (
-                                                                <>
-                                                                    <span>•</span>
-                                                                    <span>{item.chapter}</span>
-                                                                </>
+                                                                <span className="text-xs text-gray-500">
+                                                                    • {item.chapter}
+                                                                </span>
                                                             )}
-                                                        </p> */}
+                                                            {item.keywords && item.keywords.length > 0 && (
+                                                                <span className="text-xs text-gray-400">
+                                                                    • {item.keywords.slice(0, 2).join(', ')}
+                                                                    {item.keywords.length > 2 && '...'}
+                                                                </span>
+                                                            )}
+                                                        </div>
                                                     </div>
                                                     <svg className="w-5 h-5 text-gray-400 group-hover:text-[#4f90c6] 
                                                                  transform group-hover:translate-x-1 transition-all"
@@ -235,7 +332,7 @@ export default function LocalSearch() {
                                 </div>
                             )}
 
-                            {/* Popular Searches */}
+                            {/* Popular Searches - Tampilkan ketika tidak ada query atau hasil */}
                             {!isLoading && (!query.trim() || results.length === 0) && (
                                 <div className="p-6">
                                     <h3 className="font-semibold text-gray-800 mb-4 px-2 flex items-center gap-2">
@@ -251,9 +348,8 @@ export default function LocalSearch() {
                                                 onClick={() => handlePopularSearch(search)}
                                                 className="px-4 py-3 bg-gray-100 hover:bg-gradient-to-r hover:from-[#4f90c6] 
                                                          hover:to-[#90b6d5] hover:text-white rounded-xl text-sm font-medium 
-                                                         text-gray-600 hover:shadow-lg transition-all duration-200 flex items-center gap-2"
+                                                         text-gray-600 hover:shadow-lg transition-all duration-200 flex items-center gap-2 group"
                                             >
-                                                <span>🔍</span>
                                                 {search}
                                             </button>
                                         ))}
@@ -261,40 +357,52 @@ export default function LocalSearch() {
                                 </div>
                             )}
 
-                            {/* Quick Access */}
+                            {/* Recent Searches / Quick Access */}
                             <div className="p-6 bg-gray-50 border-t border-gray-200">
-                                <h3 className="font-semibold text-gray-800 mb-4 px-2">Akses Cepat</h3>
-                                <div className="grid grid-cols-2 gap-3">
+                                <div className="flex justify-between items-center mb-4">
+                                    <h3 className="font-semibold text-gray-800 px-2">Akses Cepat</h3>
+                                    <span className="text-xs text-gray-500">Pilihan terpopuler</span>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    {/* Chapter Access */}
                                     <button
                                         onClick={() => {
-                                            navigate('/chapters');
+                                            navigate('/s1/bab1');
                                             closeSearchPopup();
                                         }}
                                         className="flex items-center gap-3 p-4 rounded-xl bg-white hover:bg-gray-100 
-                                                 text-gray-700 font-medium transition-all duration-200 border border-gray-200 hover:border-[#4f90c6]"
+                                                 text-gray-700 font-medium transition-all duration-200 border border-gray-200 hover:border-[#4f90c6] group"
                                     >
-                                        <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center text-white">
+                                        <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center text-white group-hover:scale-110 transition-transform duration-200">
                                             📚
                                         </div>
                                         <div className="text-left">
-                                            <p className="font-semibold">Semua Bab</p>
-                                            <p className="text-xs text-gray-500">8 materi pembelajaran</p>
+                                            <p className="font-semibold">Bab 1 - Membilang</p>
+                                            <p className="text-xs text-gray-500">Angka 1-10</p>
                                         </div>
                                     </button>
+
+                                    {/* Game Access */}
                                     <button
                                         onClick={() => {
-                                            navigate('/games');
+                                            // Navigate ke game pertama atau game page
+                                            const gameItem = allData.find(item => item.type === 'game');
+                                            if (gameItem) {
+                                                navigate(gameItem.path);
+                                            } else {
+                                                navigate('/games');
+                                            }
                                             closeSearchPopup();
                                         }}
                                         className="flex items-center gap-3 p-4 rounded-xl bg-white hover:bg-gray-100 
-                                                 text-gray-700 font-medium transition-all duration-200 border border-gray-200 hover:border-[#4f90c6]"
+                                                 text-gray-700 font-medium transition-all duration-200 border border-gray-200 hover:border-[#4f90c6] group"
                                     >
-                                        <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-emerald-500 rounded-lg flex items-center justify-center text-white">
+                                        <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-emerald-500 rounded-lg flex items-center justify-center text-white group-hover:scale-110 transition-transform duration-200">
                                             🎮
                                         </div>
                                         <div className="text-left">
-                                            <p className="font-semibold">Semua Game</p>
-                                            <p className="text-xs text-gray-500">50+ game edukatif</p>
+                                            <p className="font-semibold">Game Edukatif</p>
+                                            <p className="text-xs text-gray-500">50+ game matematika</p>
                                         </div>
                                     </button>
                                 </div>
@@ -305,10 +413,12 @@ export default function LocalSearch() {
                         <div className="p-4 bg-gray-100 border-t border-gray-200 flex justify-between items-center text-sm text-gray-500">
                             <div className="flex items-center gap-4">
                                 <span>Tekan <kbd className="px-2 py-1 bg-gray-200 rounded text-xs">ESC</kbd> untuk tutup</span>
+                                <span className="hidden md:inline">•</span>
+                                <span className="hidden md:inline">Tekan <kbd className="px-2 py-1 bg-gray-200 rounded text-xs">↵ Enter</kbd> untuk search</span>
                             </div>
                             <button
                                 onClick={closeSearchPopup}
-                                className="px-4 py-2 text-gray-600 hover:text-gray-800 font-medium transition-colors"
+                                className="px-4 py-2 text-gray-600 hover:text-gray-800 font-medium transition-colors hover:bg-gray-200 rounded-lg"
                             >
                                 Tutup
                             </button>

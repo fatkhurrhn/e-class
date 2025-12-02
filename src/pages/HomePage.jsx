@@ -169,7 +169,7 @@ export default function HomePage() {
                 {/* Animated Background Elements */}
                 <div className="absolute inset-0 overflow-hidden">
                     <div className="absolute -top-1/2 -left-1/2 w-full h-full bg-gradient-conic from-transparent via-[#4f90c6]/20 to-transparent animate-spin-slow"></div>
-                    <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#90b6d5] to-transparent"></div>
+                    {/* <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#90b6d5] to-transparent"></div> */}
                 </div>
 
                 <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10 w-full">
