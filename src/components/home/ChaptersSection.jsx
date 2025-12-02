@@ -117,7 +117,7 @@ export default function ChaptersSection({ searchQuery }) {
 
     // Fungsi untuk handle klik chapter
     const handleChapterClick = (link) => {
-        window.location.href = link;
+        window.location.assign(link);
     };
 
     return (
