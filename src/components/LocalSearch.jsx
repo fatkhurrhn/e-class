@@ -340,7 +340,7 @@ export default function LocalSearch() {
                                                             {item.title}
                                                         </p>
                                                         {item.description && (
-                                                            <p className="text-sm text-gray-500 mt-1 line-clamp-1">
+                                                            <p className="text-sm text-gray-500 mt-1 line-clamp-1 text-left">
                                                                 {item.description}
                                                             </p>
                                                         )}
