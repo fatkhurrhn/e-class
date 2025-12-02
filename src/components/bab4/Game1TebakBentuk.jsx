@@ -1,767 +1,842 @@
-// src/components/bab4/GameTebakBentukEdukasi.jsx
-import React, { useState, useEffect, useCallback } from 'react';
+// src/components/bab4/GameTebakBentukKelas1.jsx
+import React, { useState, useEffect, useRef } from 'react';
 
-const GameTebakBentukEdukasi = () => {
-    // State untuk flow game
-    const [gamePhase, setGamePhase] = useState('welcome'); // 'welcome', 'playing', 'result'
-    const [playerName, setPlayerName] = useState('Anak Hebat');
-    const [selectedGrade, setSelectedGrade] = useState('1');
-
-    // State untuk game
+const GameTebakBentukKelas1 = () => {
+    // State game
+    const [gameStatus, setGameStatus] = useState('start'); // 'start', 'name', 'playing', 'end'
+    const [playerName, setPlayerName] = useState('');
     const [currentQuestion, setCurrentQuestion] = useState(0);
     const [score, setScore] = useState(0);
+    const [shuffledQuestions, setShuffledQuestions] = useState([]);
     const [selectedAnswer, setSelectedAnswer] = useState(null);
-    const [isCorrect, setIsCorrect] = useState(null);
-    const [showHint, setShowHint] = useState(false);
-    const [timeLeft, setTimeLeft] = useState(45);
-    const [gameCompleted, setGameCompleted] = useState(false);
-    const [streak, setStreak] = useState(0);
-    const [bestStreak, setBestStreak] = useState(0);
+    const [showFeedback, setShowFeedback] = useState(false);
+    const [isFullscreen, setIsFullscreen] = useState(false);
+    const [timeLeft, setTimeLeft] = useState(30);
+    const [gameHistory, setGameHistory] = useState([]);
 
-    // Efek suara (simulasi)
-    const [soundEnabled, setSoundEnabled] = useState(true);
+    const gameContainerRef = useRef(null);
+    const audioBenarRef = useRef(null);
+    const audioSalahRef = useRef(null);
+    const audioBerhasilRef = useRef(null);
+    const audioGagalRef = useRef(null);
 
-    // Data pertanyaan berdasarkan kelas
-    const questionsByGrade = {
-        '1': [
-            {
-                id: 1,
-                image: '🔴',
-                question: "Bentuk bola ini seperti apa?",
-                options: ['Bulat', 'Segitiga', 'Kotak', 'Panjang'],
-                correct: 'Bulat',
-                hint: "Bentuknya seperti bola mainan, bundar semua sisinya",
-                color: '#FF6B6B'
-            },
-            {
-                id: 2,
-                image: '📐',
-                question: "Bentuk penggaris segitiga ini?",
-                options: ['Bulat', 'Segitiga', 'Kotak', 'Lonjong'],
-                correct: 'Segitiga',
-                hint: "Mempunyai 3 sisi dan 3 sudut",
-                color: '#4ECDC4'
-            },
-            {
-                id: 3,
-                image: '📦',
-                question: "Kotak hadiah ini berbentuk?",
-                options: ['Bulat', 'Segitiga', 'Kotak', 'Bintang'],
-                correct: 'Kotak',
-                hint: "Ada 4 sisi yang sama panjang",
-                color: '#FFD166'
-            },
-            {
-                id: 4,
-                image: '🍫',
-                question: "Coklat batangan ini berbentuk?",
-                options: ['Panjang', 'Bulat', 'Segitiga', 'Bintang'],
-                correct: 'Panjang',
-                hint: "Bentuknya memanjang seperti persegi panjang",
-                color: '#06D6A0'
-            },
-            {
-                id: 5,
-                image: '⭐',
-                question: "Bentuk bintang ini?",
-                options: ['Bulat', 'Segitiga', 'Kotak', 'Bintang'],
-                correct: 'Bintang',
-                hint: "Bentuknya seperti bintang di langit malam",
-                color: '#118AB2'
-            },
-            {
-                id: 6,
-                image: '🟦',
-                question: "Kertas origami ini berbentuk?",
-                options: ['Bulat', 'Segitiga', 'Persegi', 'Bintang'],
-                correct: 'Persegi',
-                hint: "Semua sisinya sama panjang",
-                color: '#EF476F'
-            },
-            {
-                id: 7,
-                image: '🍩',
-                question: "Donat ini berbentuk?",
-                options: ['Bulat', 'Segitiga', 'Kotak', 'Cincin'],
-                correct: 'Cincin',
-                hint: "Bulat dengan lubang di tengah",
-                color: '#7209B7'
-            },
-            {
-                id: 8,
-                image: '🛑',
-                question: "Rambu stop ini berbentuk?",
-                options: ['Bulat', 'Segdelapan', 'Kotak', 'Segitiga'],
-                correct: 'Segdelapan',
-                hint: "Mempunyai 8 sisi",
-                color: '#F3722C'
-            }
-        ],
-        '2': [
-            {
-                id: 1,
-                image: '🎈',
-                question: "Bentuk balon ini?",
-                options: ['Lingkaran', 'Oval', 'Persegi', 'Segitiga'],
-                correct: 'Lingkaran',
-                hint: "Bundar sempurna seperti bola",
-                color: '#FF6B6B'
-            },
-            {
-                id: 2,
-                image: '📏',
-                question: "Penggaris panjang ini berbentuk?",
-                options: ['Persegi Panjang', 'Lingkaran', 'Segitiga', 'Jajar Genjang'],
-                correct: 'Persegi Panjang',
-                hint: "Memiliki panjang dan lebar yang berbeda",
-                color: '#4ECDC4'
-            }
-        ]
-    };
-
-    const grades = [
-        { id: '1', label: 'Kelas 1', emoji: '👶' },
-        { id: '2', label: 'Kelas 2', emoji: '🧒' },
-        { id: '3', label: 'Kelas 3', emoji: '👦' }
+    // Data soal
+    const soalBank = [
+        {
+            id: 1,
+            emoji: '🍕',
+            pertanyaan: "Bentuk pizza ini adalah?",
+            pilihan: ['Bulat', 'Segitiga', 'Kotak', 'Persegi Panjang'],
+            jawaban: 'Bulat',
+            hint: "Pizza biasanya bulat seperti roda"
+        },
+        {
+            id: 2,
+            emoji: '📐',
+            pertanyaan: "Bentuk penggaris segitiga ini?",
+            pilihan: ['Bulat', 'Segitiga', 'Kotak', 'Persegi Panjang'],
+            jawaban: 'Segitiga',
+            hint: "Mempunyai 3 sisi dan 3 sudut"
+        },
+        {
+            id: 3,
+            emoji: '🪟',
+            pertanyaan: "Bentuk jendela ini adalah?",
+            pilihan: ['Segitiga', 'Bulat', 'Kotak', 'Persegi Panjang'],
+            jawaban: 'Kotak',
+            hint: "Mempunyai 4 sisi sama panjang"
+        },
+        {
+            id: 4,
+            emoji: '📦',
+            pertanyaan: "Bentuk kotak hadiah ini?",
+            pilihan: ['Kotak', 'Bulat', 'Segitiga', 'Persegi Panjang'],
+            jawaban: 'Kotak',
+            hint: "Bentuk seperti kubus dengan 6 sisi"
+        },
+        {
+            id: 5,
+            emoji: '⚽',
+            pertanyaan: "Bentuk bola ini adalah?",
+            pilihan: ['Bulat', 'Kotak', 'Segitiga', 'Persegi Panjang'],
+            jawaban: 'Bulat',
+            hint: "Bentuknya bundar seperti buah jeruk"
+        },
+        {
+            id: 6,
+            emoji: '🍫',
+            pertanyaan: "Bentuk coklat batangan ini?",
+            pilihan: ['Persegi Panjang', 'Segitiga', 'Bulat', 'Kotak'],
+            jawaban: 'Persegi Panjang',
+            hint: "Bentuknya panjang dengan 4 sisi"
+        },
+        {
+            id: 7,
+            emoji: '🛑',
+            pertanyaan: "Bentuk rambu stop ini?",
+            pilihan: ['Segi Delapan', 'Bulat', 'Kotak', 'Segitiga'],
+            jawaban: 'Segi Delapan',
+            hint: "Mempunyai 8 sisi yang sama"
+        },
+        {
+            id: 8,
+            emoji: '🍩',
+            pertanyaan: "Bentuk donat ini adalah?",
+            pilihan: ['Bulat', 'Segitiga', 'Kotak', 'Persegi Panjang'],
+            jawaban: 'Bulat',
+            hint: "Bulat dengan lubang di tengah"
+        },
+        {
+            id: 9,
+            emoji: '📏',
+            pertanyaan: "Bentuk penggaris panjang ini?",
+            pilihan: ['Persegi Panjang', 'Segitiga', 'Bulat', 'Kotak'],
+            jawaban: 'Persegi Panjang',
+            hint: "Bentuknya panjang dengan sisi sejajar"
+        },
+        {
+            id: 10,
+            emoji: '🟦',
+            pertanyaan: "Bentuk kertas origami ini?",
+            pilihan: ['Kotak', 'Segitiga', 'Bulat', 'Persegi Panjang'],
+            jawaban: 'Kotak',
+            hint: "Semua sisinya sama panjang"
+        }
     ];
 
-    const questions = questionsByGrade[selectedGrade] || questionsByGrade['1'];
-    const currentQ = questions[currentQuestion];
-
-    // Timer effect
+    // Load history dari localStorage
     useEffect(() => {
-        if (gamePhase === 'playing' && timeLeft > 0 && !gameCompleted) {
+        const savedHistory = localStorage.getItem('game_tebak_bentuk_history');
+        if (savedHistory) {
+            setGameHistory(JSON.parse(savedHistory));
+        }
+    }, []);
+
+    // Acak soal saat mulai
+    useEffect(() => {
+        if (gameStatus === 'playing' && shuffledQuestions.length === 0) {
+            const shuffled = [...soalBank]
+                .sort(() => Math.random() - 0.5)
+                .slice(0, 10);
+            setShuffledQuestions(shuffled);
+            setTimeLeft(30);
+        }
+    }, [gameStatus]);
+
+    // Timer
+    useEffect(() => {
+        if (gameStatus === 'playing' && timeLeft > 0 && !showFeedback) {
             const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
             return () => clearTimeout(timer);
-        } else if (timeLeft === 0 && gamePhase === 'playing') {
+        } else if (timeLeft === 0 && gameStatus === 'playing') {
             handleNextQuestion();
         }
-    }, [timeLeft, gamePhase, gameCompleted]);
+    }, [timeLeft, gameStatus, showFeedback]);
 
-    // Initialize game
-    useEffect(() => {
-        if (gamePhase === 'playing') {
-            setTimeLeft(45);
-            setGameCompleted(false);
-            setStreak(0);
+    // Fullscreen handler khusus untuk komponen
+    const toggleFullscreen = async () => {
+        try {
+            if (!isFullscreen) {
+                if (gameContainerRef.current.requestFullscreen) {
+                    await gameContainerRef.current.requestFullscreen();
+                } else if (gameContainerRef.current.webkitRequestFullscreen) { /* Safari */
+                    await gameContainerRef.current.webkitRequestFullscreen();
+                } else if (gameContainerRef.current.msRequestFullscreen) { /* IE11 */
+                    await gameContainerRef.current.msRequestFullscreen();
+                }
+                setIsFullscreen(true);
+            } else {
+                if (document.exitFullscreen) {
+                    await document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) { /* Safari */
+                    await document.webkitExitFullscreen();
+                } else if (document.msExitFullscreen) { /* IE11 */
+                    await document.msExitFullscreen();
+                }
+                setIsFullscreen(false);
+            }
+        } catch (err) {
+            console.log('Fullscreen error:', err);
         }
-    }, [gamePhase]);
-
-    const handleStartGame = () => {
-        setGamePhase('playing');
-        setCurrentQuestion(0);
-        setScore(0);
-        setSelectedAnswer(null);
-        setIsCorrect(null);
-        setShowHint(false);
     };
 
-    const handleAnswer = useCallback((answer) => {
-        if (selectedAnswer || gameCompleted) return;
+    // Listen untuk fullscreen change
+    useEffect(() => {
+        const handleFullscreenChange = () => {
+            setIsFullscreen(!!document.fullscreenElement);
 
-        setSelectedAnswer(answer);
-        const correct = answer === currentQ.correct;
-        setIsCorrect(correct);
+            // Force light mode saat fullscreen
+            if (document.fullscreenElement) {
+                document.documentElement.classList.remove('dark');
+                document.body.classList.remove('dark');
+            }
+        };
 
-        if (correct) {
-            const newStreak = streak + 1;
-            setStreak(newStreak);
-            if (newStreak > bestStreak) setBestStreak(newStreak);
-            setScore(score + 100 + (newStreak * 10));
-        } else {
-            setStreak(0);
+        document.addEventListener('fullscreenchange', handleFullscreenChange);
+        document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+        document.addEventListener('msfullscreenchange', handleFullscreenChange);
+
+        return () => {
+            document.removeEventListener('fullscreenchange', handleFullscreenChange);
+            document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+            document.removeEventListener('msfullscreenchange', handleFullscreenChange);
+        };
+    }, []);
+
+    const handleNameSubmit = (e) => {
+        e.preventDefault();
+        if (playerName.trim()) {
+            setGameStatus('playing');
         }
+    };
 
-        // Play sound effect (simulated)
-        if (soundEnabled) {
-            const audio = correct ?
-                new Audio('https://assets.mixkit.co/sfx/preview/mixkit-winning-chimes-2015.mp3') :
-                new Audio('https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3');
-            audio.volume = 0.3;
-            // audio.play().catch(e => console.log("Audio error:", e));
+    const startGame = () => {
+        setGameStatus('name');
+    };
+
+    const playSound = (soundType) => {
+        try {
+            switch (soundType) {
+                case 'benar':
+                    audioBenarRef.current.currentTime = 0;
+                    audioBenarRef.current.play();
+                    break;
+                case 'salah':
+                    audioSalahRef.current.currentTime = 0;
+                    audioSalahRef.current.play();
+                    break;
+                case 'berhasil':
+                    audioBerhasilRef.current.currentTime = 0;
+                    audioBerhasilRef.current.play();
+                    break;
+                case 'gagal':
+                    audioGagalRef.current.currentTime = 0;
+                    audioGagalRef.current.play();
+                    break;
+            }
+        } catch (err) {
+            console.log('Audio error:', err);
+        }
+    };
+
+    const handleAnswer = (jawaban) => {
+        if (showFeedback) return;
+
+        setSelectedAnswer(jawaban);
+        setShowFeedback(true);
+
+        const benar = jawaban === shuffledQuestions[currentQuestion].jawaban;
+
+        // Play sound effect
+        if (benar) {
+            playSound('benar');
+            setScore(score + 10);
+        } else {
+            playSound('salah');
         }
 
         setTimeout(() => {
-            handleNextQuestion();
-        }, 2000);
-    }, [currentQ, selectedAnswer, score, streak, soundEnabled, gameCompleted]);
+            if (currentQuestion < 9) {
+                setCurrentQuestion(currentQuestion + 1);
+                setSelectedAnswer(null);
+                setShowFeedback(false);
+                setTimeLeft(30);
+            } else {
+                saveGameResult();
+                setGameStatus('end');
+            }
+        }, 1500);
+    };
+
+    const saveGameResult = () => {
+        const result = {
+            id: Date.now(),
+            playerName,
+            score,
+            correctAnswers: score / 10,
+            totalQuestions: 10,
+            date: new Date().toLocaleDateString('id-ID'),
+            time: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+        };
+
+        const newHistory = [result, ...gameHistory.slice(0, 4)];
+        setGameHistory(newHistory);
+        localStorage.setItem('game_tebak_bentuk_history', JSON.stringify(newHistory));
+
+        // Play hasil sound
+        if (score >= 70) {
+            playSound('berhasil');
+        } else {
+            playSound('gagal');
+        }
+    };
 
     const handleNextQuestion = () => {
-        if (currentQuestion < questions.length - 1) {
-            setCurrentQuestion(prev => prev + 1);
+        if (currentQuestion < 9) {
+            setCurrentQuestion(currentQuestion + 1);
             setSelectedAnswer(null);
-            setIsCorrect(null);
-            setShowHint(false);
-            setTimeLeft(45);
+            setShowFeedback(false);
+            setTimeLeft(30);
         } else {
-            setGameCompleted(true);
-            setTimeout(() => {
-                setGamePhase('result');
-            }, 1500);
+            saveGameResult();
+            setGameStatus('end');
         }
     };
 
-    const handleHint = () => {
-        setShowHint(true);
-        if (soundEnabled) {
-            // new Audio('https://assets.mixkit.co/sfx/preview/mixkit-magic-sparkles-3003.mp3').play();
-        }
+    const restartGame = () => {
+        setGameStatus('name');
+        setCurrentQuestion(0);
+        setScore(0);
+        setSelectedAnswer(null);
+        setShowFeedback(false);
+        setShuffledQuestions([]);
     };
 
-    const handleSkip = () => {
-        setStreak(0);
-        handleNextQuestion();
+    const resetHistory = () => {
+        setGameHistory([]);
+        localStorage.removeItem('game_tebak_bentuk_history');
     };
 
-    const progress = ((currentQuestion + 1) / questions.length) * 100;
-    const timePercentage = (timeLeft / 45) * 100;
+    const progress = ((currentQuestion + 1) / 10) * 100;
 
-    const renderWelcomeScreen = () => (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 p-4 md:p-8">
-            <div className="max-w-4xl mx-auto">
-                {/* Header */}
-                <div className="text-center mb-8">
-                    <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-gradient-to-r from-yellow-400 to-orange-400 shadow-2xl mb-6 animate-bounce">
-                        <span className="text-5xl">🎮</span>
-                    </div>
-                    <h1 className="text-4xl md:text-5xl font-bold text-gray-800 mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
-                        Game Tebak Bentuk
-                    </h1>
-                    <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                        Belajar mengenal bentuk geometri dengan cara yang menyenangkan!
-                    </p>
-                </div>
+    // Render Start Screen
+    if (gameStatus === 'start') {
+        return (
+            <>
+                {/* Audio elements */}
+                <audio ref={audioBenarRef} src="/audio/sound-benar.mp3" preload="auto" />
+                <audio ref={audioSalahRef} src="/audio/sound-salah.mp3" preload="auto" />
+                <audio ref={audioBerhasilRef} src="/audio/sound-berhasil.mp3" preload="auto" />
+                <audio ref={audioGagalRef} src="/audio/sound-gagal.mp3" preload="auto" />
 
-                {/* Main Content */}
-                <div className="grid md:grid-cols-2 gap-8 mb-10">
-                    {/* Player Info Card */}
-                    <div className="bg-white rounded-3xl p-6 shadow-xl border border-gray-100">
-                        <div className="flex items-center gap-3 mb-6">
-                            <div className="w-12 h-12 rounded-full bg-gradient-to-r from-green-400 to-blue-400 flex items-center justify-center">
-                                <span className="text-2xl">👤</span>
+                <div
+                    ref={gameContainerRef}
+                    className={`min-h-[600px] bg-[#f9fafb] ${isFullscreen ? 'flex items-center justify-center p-4' : ''}`}
+                >
+                    <div className={`w-full ${isFullscreen ? 'max-w-[1400px] mx-auto' : ''}`}>
+                        <div className="text-center mb-8">
+                            <div className="w-24 h-24 rounded-full bg-[#cbdde9] flex items-center justify-center mx-auto mb-6">
+                                <span className="text-5xl">🎮</span>
                             </div>
-                            <div>
-                                <h3 className="text-xl font-bold text-gray-800">Nama Pemain</h3>
-                                <input
-                                    type="text"
-                                    value={playerName}
-                                    onChange={(e) => setPlayerName(e.target.value)}
-                                    className="w-full px-4 py-2 mt-2 rounded-xl border-2 border-gray-200 focus:border-blue-400 focus:outline-none text-lg"
-                                    placeholder="Masukkan nama"
-                                />
-                            </div>
+                            <h1 className="text-3xl font-bold text-[#355485] mb-3">
+                                Game Tebak Bentuk
+                            </h1>
+                            <p className="text-[#6b7280] max-w-md mx-auto">
+                                Untuk siswa kelas 1 SD. Tebak bentuk dari benda sehari-hari!
+                            </p>
                         </div>
 
-                        <div className="mb-6">
-                            <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-                                <span>🏫</span> Pilih Kelas
-                            </h3>
-                            <div className="grid grid-cols-3 gap-3">
-                                {grades.map(grade => (
-                                    <button
-                                        key={grade.id}
-                                        onClick={() => setSelectedGrade(grade.id)}
-                                        className={`p-4 rounded-xl border-2 transition-all duration-300 ${selectedGrade === grade.id
-                                            ? 'border-blue-500 bg-blue-50 transform scale-105 shadow-lg'
-                                            : 'border-gray-200 hover:border-gray-300'
-                                            }`}
-                                    >
-                                        <div className="text-3xl mb-2">{grade.emoji}</div>
-                                        <div className="font-semibold text-gray-700">{grade.label}</div>
-                                    </button>
-                                ))}
+                        {/* Two Column Layout */}
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                            {/* Left Column - Aturan Main */}
+                            <div className="bg-white rounded-xl p-6 border border-[#e5e7eb]">
+                                <h3 className="font-bold text-[#355485] mb-4 flex items-center gap-2">
+                                    <span className="text-2xl">📝</span>
+                                    <span className="text-xl">Aturan Main</span>
+                                </h3>
+                                <ul className="space-y-4 text-[#6b7280]">
+                                    <li className="flex items-start gap-4 p-3 bg-[#f9fafb] rounded-lg">
+                                        <div className="w-8 h-8 bg-[#cbdde9] rounded-full flex items-center justify-center text-[#355485] font-bold text-sm flex-shrink-0">1</div>
+                                        <div>
+                                            <div className="font-medium text-[#355485] mb-1">Tebak Bentuk</div>
+                                            <div className="text-sm">Tebak bentuk dari gambar benda sehari-hari</div>
+                                        </div>
+                                    </li>
+                                    <li className="flex items-start gap-4 p-3 bg-[#f9fafb] rounded-lg">
+                                        <div className="w-8 h-8 bg-[#cbdde9] rounded-full flex items-center justify-center text-[#355485] font-bold text-sm flex-shrink-0">2</div>
+                                        <div>
+                                            <div className="font-medium text-[#355485] mb-1">Sistem Poin</div>
+                                            <div className="text-sm">Jawaban benar = 10 poin, maksimal 100 poin</div>
+                                        </div>
+                                    </li>
+                                    <li className="flex items-start gap-4 p-3 bg-[#f9fafb] rounded-lg">
+                                        <div className="w-8 h-8 bg-[#cbdde9] rounded-full flex items-center justify-center text-[#355485] font-bold text-sm flex-shrink-0">3</div>
+                                        <div>
+                                            <div className="font-medium text-[#355485] mb-1">Jumlah Soal</div>
+                                            <div className="text-sm">10 soal acak tiap kali bermain</div>
+                                        </div>
+                                    </li>
+                                    <li className="flex items-start gap-4 p-3 bg-[#f9fafb] rounded-lg">
+                                        <div className="w-8 h-8 bg-[#cbdde9] rounded-full flex items-center justify-center text-[#355485] font-bold text-sm flex-shrink-0">4</div>
+                                        <div>
+                                            <div className="font-medium text-[#355485] mb-1">Batas Waktu</div>
+                                            <div className="text-sm">30 detik per soal, jawab sebelum waktu habis</div>
+                                        </div>
+                                    </li>
+                                </ul>
                             </div>
-                        </div>
 
-                        <div className="flex items-center justify-between p-4 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl">
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-green-400 to-blue-400 flex items-center justify-center">
-                                    <span className="text-xl">🔊</span>
+                            {/* Right Column - Riwayat */}
+                            <div className="bg-white rounded-xl p-6 border border-[#e5e7eb]">
+                                <div className="flex justify-between items-center mb-4">
+                                    <h3 className="font-bold text-[#355485] flex items-center gap-2">
+                                        <span className="text-2xl">📊</span>
+                                        <span className="text-xl">Riwayat Permainan</span>
+                                    </h3>
+                                    {gameHistory.length > 0 && (
+                                        <button
+                                            onClick={resetHistory}
+                                            className="text-sm text-[#6b7280] hover:text-[#4f90c6] hover:underline"
+                                        >
+                                            Hapus Semua
+                                        </button>
+                                    )}
                                 </div>
-                                <span className="font-medium text-gray-700">Efek Suara</span>
+
+                                {gameHistory.length > 0 ? (
+                                    <div className="space-y-3">
+                                        {gameHistory.slice(0, 5).map((history, index) => (
+                                            <div
+                                                key={history.id}
+                                                className={`p-4 rounded-lg border ${index === 0 ? 'border-[#4f90c6] bg-[#f0f7ff]' : 'border-[#e5e7eb] bg-[#f9fafb]'} transition-all hover:shadow-sm`}
+                                            >
+                                                <div className="flex justify-between items-center">
+                                                    <div className="flex-1">
+                                                        <div className="flex items-center gap-2 mb-1">
+                                                            <div className="w-8 h-8 rounded-full bg-[#cbdde9] flex items-center justify-center text-[#355485] font-bold text-sm">
+                                                                {index + 1}
+                                                            </div>
+                                                            <div className="font-medium text-[#355485]">{history.playerName}</div>
+                                                        </div>
+                                                        <div className="text-xs text-[#9ca3af] ml-10">
+                                                            {history.date} • {history.time}
+                                                        </div>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <div className={`text-xl font-bold ${history.score >= 70 ? 'text-green-600' : 'text-red-600'}`}>
+                                                            {history.score}
+                                                        </div>
+                                                        <div className="text-xs text-[#9ca3af]">
+                                                            {history.correctAnswers}/10 soal
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="text-center py-8">
+                                        <div className="text-4xl text-[#cbdde9] mb-3">📝</div>
+                                        <p className="text-[#6b7280] font-medium">Belum ada riwayat permainan</p>
+                                        <p className="text-sm text-[#9ca3af] mt-1">Mulai permainan untuk melihat riwayat di sini</p>
+                                    </div>
+                                )}
                             </div>
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="flex flex-col sm:flex-row gap-4">
                             <button
-                                onClick={() => setSoundEnabled(!soundEnabled)}
-                                className={`w-14 h-8 rounded-full transition-all duration-300 ${soundEnabled ? 'bg-green-400' : 'bg-gray-300'
-                                    }`}
+                                onClick={startGame}
+                                className="flex-1 bg-[#4f90c6] hover:bg-[#3a7bb5] text-white font-bold py-4 px-8 rounded-xl transition-all duration-300 hover:scale-105 shadow-lg"
                             >
-                                <div className={`w-6 h-6 rounded-full bg-white shadow-md transform transition-transform duration-300 ${soundEnabled ? 'translate-x-8' : 'translate-x-1'
-                                    }`} />
+                                <span className="flex items-center justify-center gap-2 text-lg">
+                                    <span className="text-xl">🚀</span>
+                                    Mulai Bermain
+                                </span>
                             </button>
-                        </div>
-                    </div>
-
-                    {/* Game Info Card */}
-                    <div className="bg-gradient-to-br from-blue-500 to-purple-500 rounded-3xl p-6 text-white shadow-xl">
-                        <h3 className="text-2xl font-bold mb-6 flex items-center gap-3">
-                            <span>📚</span> Panduan Bermain
-                        </h3>
-
-                        <div className="space-y-5">
-                            <div className="flex items-start gap-4 p-4 bg-white/10 rounded-xl backdrop-blur-sm">
-                                <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
-                                    <span className="text-xl">🎯</span>
-                                </div>
-                                <div>
-                                    <h4 className="font-bold text-lg mb-1">Tujuan Game</h4>
-                                    <p className="text-white/90">Mengenal berbagai bentuk benda sehari-hari</p>
-                                </div>
-                            </div>
-
-                            <div className="flex items-start gap-4 p-4 bg-white/10 rounded-xl backdrop-blur-sm">
-                                <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
-                                    <span className="text-xl">⭐</span>
-                                </div>
-                                <div>
-                                    <h4 className="font-bold text-lg mb-1">Cara Bermain</h4>
-                                    <p className="text-white/90">Pilih jawaban yang tepat sebelum waktu habis</p>
-                                </div>
-                            </div>
-
-                            <div className="flex items-start gap-4 p-4 bg-white/10 rounded-xl backdrop-blur-sm">
-                                <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
-                                    <span className="text-xl">🏆</span>
-                                </div>
-                                <div>
-                                    <h4 className="font-bold text-lg mb-1">Tips Menang</h4>
-                                    <p className="text-white/90">Jawab benar berurutan dapat bonus poin!</p>
-                                </div>
-                            </div>
-
-                            <div className="mt-6 pt-6 border-t border-white/20">
-                                <div className="text-center">
-                                    <div className="text-4xl mb-2">{questions.length}</div>
-                                    <div className="text-white/90">Soal yang Akan Dijawab</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Start Button */}
-                <div className="text-center">
-                    <button
-                        onClick={handleStartGame}
-                        className="group relative bg-gradient-to-r from-green-400 to-blue-500 hover:from-green-500 hover:to-blue-600 
-                        text-white font-bold text-2xl py-6 px-16 rounded-2xl transition-all duration-300 
-                        hover:scale-105 shadow-2xl hover:shadow-3xl"
-                    >
-                        <span className="flex items-center justify-center gap-3">
-                            <span className="text-3xl">🚀</span>
-                            MULAI BERMAIN
-                            <span className="text-3xl group-hover:translate-x-2 transition-transform duration-300">→</span>
-                        </span>
-                        <div className="absolute -inset-4 bg-gradient-to-r from-green-400 to-blue-500 rounded-2xl blur-xl opacity-30 group-hover:opacity-50 transition-opacity duration-300 -z-10" />
-                    </button>
-                </div>
-
-                {/* Footer Note */}
-                <div className="mt-10 text-center text-gray-500 text-sm">
-                    <p>Game ini cocok untuk anak SD kelas 1-3. Dapat dimainkan dengan bimbingan guru.</p>
-                </div>
-            </div>
-        </div>
-    );
-
-    const renderGameScreen = () => (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 p-4">
-            <div className="max-w-6xl mx-auto">
-                {/* Game Header */}
-                <div className="mb-8">
-                    <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
-                        <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-400 to-purple-400 flex items-center justify-center shadow-lg">
-                                <span className="text-2xl">👤</span>
-                            </div>
-                            <div>
-                                <div className="text-sm text-gray-500">Pemain</div>
-                                <div className="text-xl font-bold text-gray-800">{playerName}</div>
-                            </div>
-                        </div>
-
-                        <div className="flex items-center gap-4">
-                            <div className="text-center">
-                                <div className="text-sm text-gray-500">Kelas</div>
-                                <div className="text-xl font-bold text-gray-800">Kelas {selectedGrade}</div>
-                            </div>
-                            <div className="w—1 h-8 bg-gray-200" />
                             <button
-                                onClick={() => setGamePhase('welcome')}
-                                className="px-4 py-2 rounded-xl border-2 border-gray-200 hover:border-gray-300 transition-colors duration-300"
+                                onClick={toggleFullscreen}
+                                className="flex-1 border-2 border-[#e5e7eb] hover:border-[#9ca3af] text-[#6b7280] py-4 px-4 rounded-xl transition-all duration-300 hover:scale-105"
                             >
-                                <span className="flex items-center gap-2">
-                                    <span>🏠</span>
-                                    <span className="hidden md:inline">Menu</span>
+                                <span className="flex items-center justify-center gap-2">
+                                    <span className="text-xl">{isFullscreen ? '📱' : '🖥️'}</span>
+                                    {isFullscreen ? 'Keluar Fullscreen' : 'Mode Fullscreen'}
                                 </span>
                             </button>
                         </div>
                     </div>
+                </div>
+            </>
+        );
+    }
 
-                    {/* Game Stats */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                        <div className="bg-white rounded-2xl p-4 shadow-lg border border-gray-100">
-                            <div className="text-sm text-gray-500 mb-1">Skor</div>
-                            <div className="text-3xl font-bold text-blue-600">{score}</div>
-                        </div>
-                        <div className="bg-white rounded-2xl p-4 shadow-lg border border-gray-100">
-                            <div className="text-sm text-gray-500 mb-1">Soal</div>
-                            <div className="text-3xl font-bold text-purple-600">{currentQuestion + 1}/{questions.length}</div>
-                        </div>
-                        <div className="bg-white rounded-2xl p-4 shadow-lg border border-gray-100">
-                            <div className="text-sm text-gray-500 mb-1">Streak</div>
-                            <div className="text-3xl font-bold text-green-600 flex items-center gap-2">
-                                {streak} <span className="text-xl">🔥</span>
-                            </div>
-                        </div>
-                        <div className="bg-white rounded-2xl p-4 shadow-lg border border-gray-100">
-                            <div className="text-sm text-gray-500 mb-1">Waktu</div>
-                            <div className={`text-3xl font-bold ${timeLeft < 10 ? 'text-red-500 animate-pulse' : 'text-orange-500'}`}>
-                                {timeLeft}s
-                            </div>
-                        </div>
-                    </div>
+    // Render Name Input Screen
+    if (gameStatus === 'name') {
+        return (
+            <>
+                <audio ref={audioBenarRef} src="/audio/sound-benar.mp3" preload="auto" />
+                <audio ref={audioSalahRef} src="/audio/sound-salah.mp3" preload="auto" />
+                <audio ref={audioBerhasilRef} src="/audio/sound-berhasil.mp3" preload="auto" />
+                <audio ref={audioGagalRef} src="/audio/sound-gagal.mp3" preload="auto" />
 
-                    {/* Progress Bar */}
-                    <div className="mb-6">
-                        <div className="flex justify-between text-sm text-gray-600 mb-2">
-                            <span>Progress Game</span>
-                            <span>{Math.round(progress)}%</span>
+                <div
+                    ref={gameContainerRef}
+                    className={`min-h-[600px] bg-[#f9fafb] ${isFullscreen ? 'flex items-center justify-center p-4' : ''}`}
+                >
+                    <div className={`w-full ${isFullscreen ? 'max-w-[800px] mx-auto' : ''}`}>
+                        <div className="text-center mb-8 max-w-md mx-auto">
+                            <div className="w-20 h-20 rounded-full bg-[#cbdde9] flex items-center justify-center mx-auto mb-6">
+                                <span className="text-4xl">👤</span>
+                            </div>
+                            <h2 className="text-2xl font-bold text-[#355485] mb-3">
+                                Masukkan Nama
+                            </h2>
+                            <p className="text-[#6b7280] mb-6">
+                                Masukkan nama untuk memulai permainan
+                            </p>
+
+                            <form onSubmit={handleNameSubmit} className="space-y-4">
+                                <div>
+                                    <input
+                                        type="text"
+                                        value={playerName}
+                                        onChange={(e) => setPlayerName(e.target.value)}
+                                        placeholder="Nama siswa atau kelompok"
+                                        className="w-full px-4 py-3 rounded-xl border border-[#e5e7eb] focus:border-[#4f90c6] focus:outline-none bg-white text-[#355485] text-lg"
+                                        autoFocus
+                                    />
+                                </div>
+
+                                <div className="flex gap-4">
+                                    <button
+                                        type="button"
+                                        onClick={() => setGameStatus('start')}
+                                        className="flex-1 border border-[#e5e7eb] hover:border-[#9ca3af] text-[#6b7280] py-3 rounded-xl transition-all duration-300 hover:scale-105"
+                                    >
+                                        Kembali
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        disabled={!playerName.trim()}
+                                        className="flex-1 bg-[#4f90c6] hover:bg-[#3a7bb5] disabled:bg-[#cbdde9] disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl transition-all duration-300 hover:scale-105"
+                                    >
+                                        Lanjutkan
+                                    </button>
+                                </div>
+                            </form>
                         </div>
-                        <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
-                            <div
-                                className="h-full bg-gradient-to-r from-green-400 to-blue-500 rounded-full transition-all duration-500"
-                                style={{ width: `${progress}%` }}
-                            />
+
+                        <div className="text-center mt-8">
+                            <button
+                                onClick={toggleFullscreen}
+                                className="border border-[#e5e7eb] hover:border-[#9ca3af] text-[#6b7280] py-2 px-4 rounded-lg transition-colors text-sm"
+                            >
+                                {isFullscreen ? '📱 Keluar Fullscreen' : '🖥️ Mode Fullscreen'}
+                            </button>
                         </div>
                     </div>
                 </div>
+            </>
+        );
+    }
 
-                {/* Main Game Area */}
-                <div className="bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden">
-                    {/* Timer Bar */}
-                    <div className="h-2 w-full bg-gradient-to-r from-green-400 via-yellow-400 to-red-500">
-                        <div
-                            className="h-full bg-gray-800 transition-all duration-1000 ease-linear"
-                            style={{ width: `${timePercentage}%` }}
-                        />
-                    </div>
+    // Render Game Screen
+    if (gameStatus === 'playing' && shuffledQuestions.length > 0) {
+        const soal = shuffledQuestions[currentQuestion];
 
-                    <div className="p-6 md:p-10">
-                        <div className="flex flex-col lg:flex-row items-center gap-10">
-                            {/* Left: Object Display */}
-                            <div className="flex-1 text-center">
-                                <div className="relative mb-8">
-                                    <div className="text-9xl mb-4 animate-bounce" style={{ color: currentQ.color }}>
-                                        {currentQ.image}
+        return (
+            <>
+                <audio ref={audioBenarRef} src="/audio/sound-benar.mp3" preload="auto" />
+                <audio ref={audioSalahRef} src="/audio/sound-salah.mp3" preload="auto" />
+                <audio ref={audioBerhasilRef} src="/audio/sound-berhasil.mp3" preload="auto" />
+                <audio ref={audioGagalRef} src="/audio/sound-gagal.mp3" preload="auto" />
+
+                <div
+                    ref={gameContainerRef}
+                    className={`min-h-[600px] bg-[#f9fafb] ${isFullscreen ? 'flex items-center justify-center p-4' : ''}`}
+                >
+                    <div className={`w-full ${isFullscreen ? 'max-w-[1200px] mx-auto' : ''}`}>
+                        {/* Header */}
+                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                            <div>
+                                <h2 className="text-xl font-bold text-[#355485]">Tebak Bentuk</h2>
+                                <p className="text-[#6b7280] text-sm">Pemain: <span className="font-semibold text-[#4f90c6]">{playerName}</span></p>
+                            </div>
+
+                            <div className="flex items-center gap-4">
+                                <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-lg border border-[#e5e7eb] shadow-sm">
+                                    <div className="text-center">
+                                        <div className="font-bold text-[#4f90c6]">{score}</div>
+                                        <div className="text-xs text-[#9ca3af]">Poin</div>
                                     </div>
-                                    <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-blue-500 to-purple-500 text-white px-6 py-2 rounded-full text-sm font-bold shadow-lg">
+                                    <div className="w-px h-8 bg-[#e5e7eb]" />
+                                    <div className="text-center">
+                                        <div className="font-bold text-[#4f90c6]">{currentQuestion + 1}/10</div>
+                                        <div className="text-xs text-[#9ca3af]">Soal</div>
+                                    </div>
+                                    <div className="w-px h-8 bg-[#e5e7eb]" />
+                                    <div className={`text-center ${timeLeft < 10 && 'animate-pulse'}`}>
+                                        <div className={`font-bold ${timeLeft < 10 ? 'text-red-500' : 'text-[#4f90c6]'}`}>
+                                            {timeLeft}s
+                                        </div>
+                                        <div className="text-xs text-[#9ca3af]">Waktu</div>
+                                    </div>
+                                </div>
+
+                                <button
+                                    onClick={toggleFullscreen}
+                                    className="p-3 rounded-lg border border-[#e5e7eb] hover:border-[#9ca3af] text-[#6b7280] hover:bg-white transition-all duration-300"
+                                    title={isFullscreen ? "Keluar Fullscreen" : "Mode Fullscreen"}
+                                >
+                                    {isFullscreen ? '📱' : '🖥️'}
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Progress Bar */}
+                        <div className="mb-8">
+                            <div className="flex justify-between text-sm text-[#6b7280] mb-1">
+                                <span>Progress</span>
+                                <span>{Math.round(progress)}%</span>
+                            </div>
+                            <div className="w-full h-3 bg-[#e5e7eb] rounded-full overflow-hidden">
+                                <div
+                                    className="h-full bg-gradient-to-r from-[#4f90c6] to-[#90b6d5] rounded-full transition-all duration-500"
+                                    style={{ width: `${progress}%` }}
+                                />
+                            </div>
+                        </div>
+
+                        {/* Main Content */}
+                        <div className="bg-white rounded-xl p-6 border border-[#e5e7eb] shadow-sm">
+                            <div className="flex flex-col lg:flex-row items-center gap-8">
+                                {/* Emoji Display */}
+                                <div className="flex-1 text-center">
+                                    <div className="text-8xl mb-4 animate-bounce">{soal.emoji}</div>
+                                    <div className="inline-block bg-gradient-to-r from-[#f9fafb] to-white px-4 py-2 rounded-lg border border-[#e5e7eb] text-[#6b7280] text-sm">
                                         Benda Sehari-hari
                                     </div>
                                 </div>
 
-                                {/* Hint Box */}
-                                {showHint && (
-                                    <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-200 rounded-2xl p-4 mb-6 animate-fade-in">
-                                        <div className="flex items-start gap-3">
-                                            <div className="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center flex-shrink-0">
-                                                <span className="text-xl">💡</span>
-                                            </div>
-                                            <div>
-                                                <div className="font-bold text-yellow-800 mb-1">Petunjuk</div>
-                                                <div className="text-yellow-700">{currentQ.hint}</div>
-                                            </div>
-                                        </div>
+                                {/* Question & Options */}
+                                <div className="flex-1 w-full">
+                                    <div className="mb-6">
+                                        <div className="text-sm text-[#4f90c6] font-medium mb-2">SOAL #{soal.id}</div>
+                                        <h3 className="text-xl font-bold text-[#355485]">{soal.pertanyaan}</h3>
                                     </div>
-                                )}
-                            </div>
 
-                            {/* Right: Question & Options */}
-                            <div className="flex-1 w-full">
-                                {/* Question */}
-                                <div className="mb-8">
-                                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-blue-100 to-purple-100 text-blue-700 font-semibold text-sm mb-4">
-                                        <span>❓</span> SOAL #{currentQ.id}
+                                    <div className="space-y-3">
+                                        {soal.pilihan.map((pilihan, idx) => {
+                                            const terpilih = selectedAnswer === pilihan;
+                                            const benar = pilihan === soal.jawaban;
+
+                                            return (
+                                                <button
+                                                    key={idx}
+                                                    onClick={() => handleAnswer(pilihan)}
+                                                    disabled={showFeedback}
+                                                    className={`w-full p-4 rounded-lg text-left transition-all duration-200
+                                                        ${terpilih
+                                                            ? benar
+                                                                ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 text-green-800 transform scale-105'
+                                                                : 'bg-gradient-to-r from-red-50 to-pink-50 border-2 border-red-200 text-red-800 transform scale-105'
+                                                            : 'bg-gradient-to-r from-[#f9fafb] to-white border border-[#e5e7eb] hover:border-[#cbdde9] hover:shadow-sm text-[#355485]'
+                                                        }
+                                                        ${showFeedback && benar && !terpilih ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 text-green-800' : ''}
+                                                    `}
+                                                >
+                                                    <div className="flex items-center justify-between">
+                                                        <span className="font-medium">{pilihan}</span>
+                                                        {terpilih && (
+                                                            <span className="text-xl animate-pulse">
+                                                                {benar ? '✅' : '❌'}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </button>
+                                            );
+                                        })}
                                     </div>
-                                    <h2 className="text-3xl md:text-4xl font-bold text-gray-800 leading-tight mb-6">
-                                        {currentQ.question}
-                                    </h2>
-                                </div>
-
-                                {/* Answer Options */}
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-                                    {currentQ.options.map((option, index) => {
-                                        const isSelected = selectedAnswer === option;
-                                        const isCorrectAnswer = option === currentQ.correct;
-                                        const colors = ['from-blue-400 to-cyan-400', 'from-green-400 to-emerald-400', 'from-yellow-400 to-orange-400', 'from-purple-400 to-pink-400'];
-
-                                        return (
-                                            <button
-                                                key={index}
-                                                onClick={() => handleAnswer(option)}
-                                                disabled={selectedAnswer}
-                                                className={`relative p-6 rounded-2xl text-xl font-bold text-white transition-all duration-300
-                                                    ${isSelected
-                                                        ? isCorrect
-                                                            ? 'ring-4 ring-green-300 shadow-2xl transform scale-105'
-                                                            : 'ring-4 ring-red-300 shadow-2xl transform scale-105'
-                                                        : 'hover:scale-105 hover:shadow-xl'
-                                                    } 
-                                                    bg-gradient-to-r ${colors[index]}
-                                                `}
-                                            >
-                                                <div className="flex items-center justify-between">
-                                                    <span>{option}</span>
-                                                    {isSelected && (
-                                                        <span className="text-2xl animate-bounce">
-                                                            {isCorrect ? '✅' : '❌'}
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-
-                                {/* Game Controls */}
-                                <div className="flex gap-4">
-                                    <button
-                                        onClick={handleHint}
-                                        disabled={showHint || selectedAnswer}
-                                        className="flex-1 py-4 px-6 rounded-2xl bg-gradient-to-r from-yellow-400 to-orange-400 text-white font-bold text-lg
-                                            disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 transition-all duration-300 shadow-lg"
-                                    >
-                                        <span className="flex items-center justify-center gap-3">
-                                            <span className="text-xl">💡</span>
-                                            {showHint ? 'Petunjuk Ditampilkan' : 'Minta Petunjuk'}
-                                        </span>
-                                    </button>
-                                    <button
-                                        onClick={handleSkip}
-                                        disabled={selectedAnswer}
-                                        className="flex-1 py-4 px-6 rounded-2xl bg-gradient-to-r from-gray-400 to-gray-500 text-white font-bold text-lg
-                                            disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 transition-all duration-300 shadow-lg"
-                                    >
-                                        <span className="flex items-center justify-center gap-3">
-                                            <span className="text-xl">⏭️</span>
-                                            Lewati
-                                        </span>
-                                    </button>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </div>
 
-                {/* Feedback Message */}
-                {selectedAnswer && (
-                    <div className={`mt-6 p-6 rounded-3xl text-center text-white shadow-xl animate-fade-in
-                        ${isCorrect
-                            ? 'bg-gradient-to-r from-green-400 to-emerald-500'
-                            : 'bg-gradient-to-r from-red-400 to-pink-500'
-                        }`}
-                    >
-                        <div className="flex flex-col md:flex-row items-center justify-center gap-4">
-                            <div className="text-4xl animate-bounce">
-                                {isCorrect ? '🎉' : '😢'}
-                            </div>
-                            <div>
-                                <h3 className="text-2xl font-bold mb-2">
-                                    {isCorrect ? 'Hore! Jawaban Benar!' : 'Oops! Coba Lagi!'}
-                                </h3>
-                                <p className="text-lg opacity-90">
-                                    {isCorrect
-                                        ? `Kamu mendapatkan 100 poin + ${streak * 10} poin streak!`
-                                        : `Jawaban yang benar adalah: ${currentQ.correct}`
-                                    }
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {/* Streak Indicator */}
-                {streak >= 3 && (
-                    <div className="mt-6 p-4 bg-gradient-to-r from-yellow-400 to-red-500 rounded-2xl text-center text-white font-bold text-lg animate-pulse">
-                        🔥 STREAK {streak} JAWABAN BENAR! 🔥
-                    </div>
-                )}
-
-                {/* Completion Overlay */}
-                {gameCompleted && (
-                    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 animate-fade-in">
-                        <div className="bg-white rounded-3xl p-8 max-w-md mx-4 text-center animate-scale-in">
-                            <div className="text-6xl mb-4 animate-spin">✨</div>
-                            <h3 className="text-3xl font-bold text-gray-800 mb-4">Game Selesai!</h3>
-                            <p className="text-gray-600 mb-6">Mengarahkan ke hasil permainan...</p>
-                            <div className="text-2xl font-bold text-blue-600">
-                                Skor Akhir: {score}
-                            </div>
-                        </div>
-                    </div>
-                )}
-            </div>
-        </div>
-    );
-
-    const renderResultScreen = () => {
-        const correctCount = Math.round(score / 100);
-        const accuracy = Math.round((correctCount / questions.length) * 100);
-
-        return (
-            <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 p-4">
-                <div className="max-w-4xl mx-auto">
-                    {/* Result Header */}
-                    <div className="text-center mb-10">
-                        <div className={`inline-flex items-center justify-center w-32 h-32 rounded-full mb-6 shadow-2xl
-                            ${accuracy >= 80 ? 'bg-gradient-to-r from-yellow-400 to-orange-400 animate-bounce' :
-                                accuracy >= 60 ? 'bg-gradient-to-r from-green-400 to-blue-400' :
-                                    'bg-gradient-to-r from-purple-400 to-pink-400'}`}
-                        >
-                            <span className="text-6xl">
-                                {accuracy >= 80 ? '🏆' :
-                                    accuracy >= 60 ? '🎉' :
-                                        '🌟'}
-                            </span>
-                        </div>
-                        <h1 className="text-4xl font-bold text-gray-800 mb-4">
-                            {accuracy >= 80 ? 'Luar Biasa!' :
-                                accuracy >= 60 ? 'Hebat Sekali!' :
-                                    'Terus Berlatih!'}
-                        </h1>
-                        <p className="text-xl text-gray-600">
-                            Hasil permainan <span className="font-bold text-blue-600">{playerName}</span>
-                        </p>
-                    </div>
-
-                    {/* Score Summary */}
-                    <div className="grid md:grid-cols-2 gap-8 mb-10">
-                        <div className="bg-white rounded-3xl p-8 shadow-xl">
-                            <h3 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
-                                <span>📊</span> Statistik Game
-                            </h3>
-                            <div className="space-y-6">
-                                <div className="flex justify-between items-center p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl">
-                                    <span className="text-gray-700 font-medium">Skor Total</span>
-                                    <span className="text-3xl font-bold text-blue-600">{score}</span>
-                                </div>
-                                <div className="flex justify-between items-center p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl">
-                                    <span className="text-gray-700 font-medium">Jawaban Benar</span>
-                                    <span className="text-3xl font-bold text-green-600">{correctCount}/{questions.length}</span>
-                                </div>
-                                <div className="flex justify-between items-center p-4 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl">
-                                    <span className="text-gray-700 font-medium">Akurasi</span>
-                                    <span className="text-3xl font-bold text-orange-600">{accuracy}%</span>
-                                </div>
-                                <div className="flex justify-between items-center p-4 bg-gradient-to-r from-red-50 to-pink-50 rounded-xl">
-                                    <span className="text-gray-700 font-medium">Streak Tertinggi</span>
-                                    <span className="text-3xl font-bold text-red-600 flex items-center gap-2">
-                                        {bestStreak} <span className="text-xl">🔥</span>
+                        {/* Feedback */}
+                        {/* {showFeedback && (
+                            <div className={`mt-6 p-4 rounded-lg text-center animate-fade-in ${selectedAnswer === soal.jawaban ? 'bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 text-green-800' : 'bg-gradient-to-r from-red-50 to-pink-50 border border-red-200 text-red-800'
+                                }`}
+                            >
+                                <div className="flex items-center justify-center gap-2">
+                                    <span className="text-2xl">
+                                        {selectedAnswer === soal.jawaban ? '🎉' : '❌'}
+                                    </span>
+                                    <span className="font-medium text-lg">
+                                        {selectedAnswer === soal.jawaban ? 'Benar!' : 'Salah!'}
                                     </span>
                                 </div>
+                                <p className="text-sm mt-1">{soal.hint}</p>
+                                {selectedAnswer !== soal.jawaban && (
+                                    <p className="text-sm mt-1">
+                                        Jawaban benar: <span className="font-bold">{soal.jawaban}</span>
+                                    </p>
+                                )}
                             </div>
-                        </div>
-
-                        <div className="bg-gradient-to-br from-blue-500 to-purple-500 rounded-3xl p-8 text-white shadow-xl">
-                            <h3 className="text-2xl font-bold mb-6 flex items-center gap-3">
-                                <span>🎯</span> Pencapaian
-                            </h3>
-                            <div className="space-y-4 mb-6">
-                                <div className={`flex items-center gap-3 p-4 rounded-xl ${accuracy >= 80 ? 'bg-white/20' : 'bg-white/10'}`}>
-                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${accuracy >= 80 ? 'bg-white' : 'bg-white/30'}`}>
-                                        <span className="text-xl">🏆</span>
-                                    </div>
-                                    <div>
-                                        <div className="font-bold">Master Bentuk</div>
-                                        <div className="text-sm opacity-90">Dapatkan akurasi ≥80%</div>
-                                    </div>
-                                </div>
-                                <div className={`flex items-center gap-3 p-4 rounded-xl ${streak >= 5 ? 'bg-white/20' : 'bg-white/10'}`}>
-                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${streak >= 5 ? 'bg-white' : 'bg-white/30'}`}>
-                                        <span className="text-xl">🔥</span>
-                                    </div>
-                                    <div>
-                                        <div className="font-bold">Streak Champion</div>
-                                        <div className="text-sm opacity-90">5 jawaban benar beruntun</div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="mt-8 pt-6 border-t border-white/20">
-                                <div className="text-center">
-                                    <div className="text-sm opacity-90 mb-2">Waktu Bermain</div>
-                                    <div className="text-2xl font-bold">{new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Action Buttons */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-                        <button
-                            onClick={() => setGamePhase('welcome')}
-                            className="p-6 rounded-2xl bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 font-bold text-lg
-                                hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl"
-                        >
-                            <span className="flex flex-col items-center gap-3">
-                                <span className="text-3xl">🏠</span>
-                                Menu Utama
-                            </span>
-                        </button>
-                        <button
-                            onClick={handleStartGame}
-                            className="p-6 rounded-2xl bg-gradient-to-r from-blue-400 to-purple-500 text-white font-bold text-lg
-                                hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl"
-                        >
-                            <span className="flex flex-col items-center gap-3">
-                                <span className="text-3xl">🔁</span>
-                                Main Lagi
-                            </span>
-                        </button>
-                        <button
-                            onClick={() => setSelectedGrade(prev => prev === '1' ? '2' : '1')}
-                            className="p-6 rounded-2xl bg-gradient-to-r from-green-400 to-emerald-500 text-white font-bold text-lg
-                                hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl"
-                        >
-                            <span className="flex flex-col items-center gap-3">
-                                <span className="text-3xl">📚</span>
-                                Ganti Kelas
-                            </span>
-                        </button>
-                    </div>
-
-                    {/* Certificate */}
-                    <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-200 rounded-3xl p-8 text-center">
-                        <div className="text-5xl mb-4">📜</div>
-                        <h3 className="text-2xl font-bold text-yellow-800 mb-2">Sertifikat Prestasi</h3>
-                        <p className="text-yellow-700 mb-4">
-                            {playerName} telah menyelesaikan Game Tebak Bentuk dengan hasil:
-                        </p>
-                        <div className="text-3xl font-bold text-yellow-800">{score} Poin</div>
-                        <div className="mt-4 text-sm text-yellow-600">
-                            Dicapai pada {new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-                        </div>
-                    </div>
-
-                    {/* Share Button */}
-                    <div className="text-center mt-8">
-                        <button className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-blue-400 to-cyan-400 text-white font-bold rounded-2xl hover:scale-105 transition-all duration-300 shadow-lg">
-                            <span className="text-xl">📤</span>
-                            Bagikan Hasil ke Kelas
-                        </button>
+                        )} */}
                     </div>
                 </div>
-            </div>
+            </>
         );
-    };
+    }
 
-    // Render berdasarkan phase
+    // Render End Screen
+    if (gameStatus === 'end') {
+        const nilai = score;
+        const pesan = nilai === 100 ? 'Luar Biasa!' : nilai >= 70 ? 'Hebat!' : 'Coba Lagi!';
+        const status = nilai >= 70 ? 'berhasil' : 'gagal';
+
+        return (
+            <>
+                <audio ref={audioBenarRef} src="/audio/sound-benar.mp3" preload="auto" />
+                <audio ref={audioSalahRef} src="/audio/sound-salah.mp3" preload="auto" />
+                <audio ref={audioBerhasilRef} src="/audio/sound-berhasil.mp3" preload="auto" />
+                <audio ref={audioGagalRef} src="/audio/sound-gagal.mp3" preload="auto" />
+
+                <div
+                    ref={gameContainerRef}
+                    className={`min-h-[600px] bg-[#f9fafb] ${isFullscreen ? 'flex items-center justify-center p-4' : ''}`}
+                >
+                    <div className={`w-full ${isFullscreen ? 'max-w-[1200px] mx-auto' : ''}`}>
+                        <div className="text-center mb-8">
+                            <div className={`w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6
+                                ${nilai === 100 ? 'bg-gradient-to-r from-yellow-100 to-orange-100' :
+                                    nilai >= 70 ? 'bg-gradient-to-r from-green-100 to-emerald-100' :
+                                        'bg-gradient-to-r from-red-100 to-pink-100'}`}
+                            >
+                                <span className="text-5xl">
+                                    {nilai === 100 ? '🏆' : nilai >= 70 ? '🎉' : '📝'}
+                                </span>
+                            </div>
+                            <h1 className="text-3xl font-bold text-[#355485] mb-2">{pesan}</h1>
+                            <p className="text-[#6b7280] mb-1">Hasil Game Tebak Bentuk</p>
+                            <p className="text-[#4f90c6] font-semibold">Pemain: {playerName}</p>
+                        </div>
+
+                        {/* Two Column Layout */}
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                            {/* Left Column - Score Summary */}
+                            <div className="bg-white rounded-xl p-6 border border-[#e5e7eb]">
+                                <h3 className="font-bold text-[#355485] mb-6 flex items-center gap-2">
+                                    <span className="text-2xl">📋</span>
+                                    <span className="text-xl">Hasil Permainan</span>
+                                </h3>
+
+                                <div className="text-center mb-6">
+                                    <div className={`text-5xl font-bold mb-2 ${nilai >= 70 ? 'text-green-600' : 'text-red-600'}`}>{nilai}</div>
+                                    <div className="text-[#6b7280]">Nilai Akhir</div>
+                                </div>
+
+                                <div className="space-y-4">
+                                    <div className="flex justify-between items-center p-3 bg-gradient-to-r from-[#f9fafb] to-white rounded-lg border border-[#e5e7eb]">
+                                        <span className="text-[#6b7280]">Jawaban Benar</span>
+                                        <span className="font-bold text-[#355485]">{score / 10} dari 10</span>
+                                    </div>
+                                    <div className="flex justify-between items-center p-3 bg-gradient-to-r from-[#f9fafb] to-white rounded-lg border border-[#e5e7eb]">
+                                        <span className="text-[#6b7280]">Persentase</span>
+                                        <span className="font-bold text-[#355485]">{nilai}%</span>
+                                    </div>
+                                    <div className="flex justify-between items-center p-3 bg-gradient-to-r from-[#f9fafb] to-white rounded-lg border border-[#e5e7eb]">
+                                        <span className="text-[#6b7280]">Status</span>
+                                        <span className={`font-bold ${nilai >= 70 ? 'text-green-600' : 'text-red-600'}`}>
+                                            {nilai >= 70 ? '✅ Berhasil' : '❌ Perlu Latihan'}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div className={`mt-6 p-4 rounded-lg text-center ${nilai >= 70 ? 'bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 text-green-800' : 'bg-gradient-to-r from-red-50 to-pink-50 border border-red-200 text-red-800'}`}>
+                                    <p className="font-medium">
+                                        {nilai >= 70 ? '🎉 Selamat! Kamu sudah menguasai materi bentuk!' : '💪 Ayo coba lagi untuk meningkatkan nilaimu!'}
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Right Column - History */}
+                            <div className="bg-white rounded-xl p-6 border border-[#e5e7eb]">
+                                <h3 className="font-bold text-[#355485] mb-4 flex items-center gap-2">
+                                    <span className="text-2xl">📊</span>
+                                    <span className="text-xl">Riwayat Permainan</span>
+                                </h3>
+                                <div className="space-y-3">
+                                    {gameHistory.slice(0, 5).map((history, index) => (
+                                        <div
+                                            key={history.id}
+                                            className={`p-3 rounded-lg border transition-all hover:shadow-sm ${index === 0 ? 'border-[#4f90c6] bg-gradient-to-r from-[#f0f7ff] to-white' : 'border-[#e5e7eb] bg-[#f9fafb]'}`}
+                                        >
+                                            <div className="flex justify-between items-center">
+                                                <div>
+                                                    <div className="flex items-center gap-2 mb-1">
+                                                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${index === 0 ? 'bg-[#4f90c6] text-white' : 'bg-[#cbdde9] text-[#355485]'}`}>
+                                                            {index + 1}
+                                                        </div>
+                                                        <div className="font-medium text-[#355485]">{history.playerName}</div>
+                                                        {index === 0 && (
+                                                            <span className="text-xs bg-[#4f90c6] text-white px-2 py-1 rounded-full">TERBARU</span>
+                                                        )}
+                                                    </div>
+                                                    <div className="text-xs text-[#9ca3af] ml-8">
+                                                        {history.date} • {history.time}
+                                                    </div>
+                                                </div>
+                                                <div className="text-right">
+                                                    <div className={`text-lg font-bold ${history.score >= 70 ? 'text-green-600' : 'text-red-600'}`}>
+                                                        {history.score}
+                                                    </div>
+                                                    <div className="text-xs text-[#9ca3af]">
+                                                        {history.correctAnswers}/10
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="flex flex-col sm:flex-row gap-4 mb-4">
+                            <button
+                                onClick={restartGame}
+                                className="flex-1 bg-[#4f90c6] hover:bg-[#3a7bb5] text-white font-bold py-4 px-8 rounded-xl transition-all duration-300 hover:scale-105 shadow-lg"
+                            >
+                                <span className="flex items-center justify-center gap-2">
+                                    <span className="text-xl">🔄</span>
+                                    Main Lagi
+                                </span>
+                            </button>
+                            <button
+                                onClick={() => setGameStatus('start')}
+                                className="flex-1 border-2 border-[#e5e7eb] hover:border-[#9ca3af] text-[#6b7280] py-4 px-6 rounded-xl transition-all duration-300 hover:scale-105"
+                            >
+                                <span className="flex items-center justify-center gap-2">
+                                    <span className="text-xl">🏠</span>
+                                    Menu Utama
+                                </span>
+                            </button>
+                        </div>
+
+                        <div className="text-center">
+                            <button
+                                onClick={toggleFullscreen}
+                                className="border border-[#e5e7eb] hover:border-[#9ca3af] text-[#6b7280] py-2 px-4 rounded-lg transition-colors text-sm hover:bg-white"
+                            >
+                                {isFullscreen ? '📱 Keluar Fullscreen' : '🖥️ Mode Fullscreen'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </>
+        );
+    }
+
+    // Loading state
     return (
         <>
-            {gamePhase === 'welcome' && renderWelcomeScreen()}
-            {gamePhase === 'playing' && renderGameScreen()}
-            {gamePhase === 'result' && renderResultScreen()}
+            <audio ref={audioBenarRef} src="/audio/sound-benar.mp3" preload="auto" />
+            <audio ref={audioSalahRef} src="/audio/sound-salah.mp3" preload="auto" />
+            <audio ref={audioBerhasilRef} src="/audio/sound-berhasil.mp3" preload="auto" />
+            <audio ref={audioGagalRef} src="/audio/sound-gagal.mp3" preload="auto" />
+
+            <div
+                ref={gameContainerRef}
+                className={`min-h-[600px] bg-[#f9fafb] flex items-center justify-center ${isFullscreen ? 'p-4' : ''}`}
+            >
+                <div className={`text-center ${isFullscreen ? 'max-w-[800px] w-full' : ''}`}>
+                    <div className="w-16 h-16 border-4 border-[#cbdde9] border-t-[#4f90c6] rounded-full animate-spin mx-auto mb-4" />
+                    <p className="text-[#6b7280]">Menyiapkan soal...</p>
+                </div>
+            </div>
         </>
     );
 };
 
-export default GameTebakBentukEdukasi;
+export default GameTebakBentukKelas1;
