@@ -1,7 +1,7 @@
 import React from 'react'
 
-export default function Percobaan10() {
+export default function P() {
   return (
-    <div>Percobaan10</div>
+    <div>P</div>
   )
 }
