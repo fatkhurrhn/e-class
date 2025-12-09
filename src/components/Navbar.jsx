@@ -1,5 +1,5 @@
 import React from "react";
-import { NavLink } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 import LocalSearch from "./LocalSearch";
 
 export default function Navbar() {
@@ -73,7 +73,7 @@ export default function Navbar() {
                                     <DropdownItem to="/semester/1/bab1" text="Bab 1 — Ayo Membilang sampai 10" />
                                     <DropdownItem to="/semester/1/bab2" text="Bab 2 — Penjumlahan sampai 10" />
                                     <DropdownItem to="/semester/1/bab3" text="Bab 3 — Pengurangan sampai 10" />
-                                    <DropdownItem to="/s1/bab4" text="Bab 4 — Mengenal Bentuk" />
+                                    <Link to="/s1/bab4" text="Bab 4 — Mengenal Bentuk" />
                                 </div>
                             </div>
 
