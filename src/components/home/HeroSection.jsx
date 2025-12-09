@@ -23,7 +23,7 @@ export default function HeroSection({ stats }) {
             <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10 w-full">
                 {/* School Badge */}
                 <div className="inline-flex items-center bg-white/20 backdrop-blur-sm rounded-full px-6 py-2 mt-3 mb-4 border border-white/30 shadow-lg">
-                    <span className="text-sm font-semibold">MI Al-Ikhlas Depok - Media Pembelajaran Berbasis Game</span>
+                    <span className="text-sm font-semibold">MI Al-Ikhlas Depokk - Media Pembelajaran Berbasis Game</span>
                 </div>
 
                 {/* Main Heading */}

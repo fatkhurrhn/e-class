@@ -18,7 +18,3 @@ export {
     default as FinalCTASection
 }
 from './FinalCTASection';
-export {
-    default as ChapterCard
-}
-from './ChapterCard';
