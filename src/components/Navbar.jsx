@@ -70,9 +70,9 @@ export default function Navbar() {
             bg-white shadow-lg border rounded-md w-64 transition-all duration-200
         "
                                 >
-                                    <DropdownItem to="/semester/1/bab1" text="Bab 1 — Ayo Membilang sampai 10" />
-                                    <DropdownItem to="/semester/1/bab2" text="Bab 2 — Penjumlahan sampai 10" />
-                                    <DropdownItem to="/semester/1/bab3" text="Bab 3 — Pengurangan sampai 10" />
+                                    <DropdownItem to="/s1/bab1" text="Bab 1 — Ayo Membilang sampai 10" />
+                                    <DropdownItem to="/s1/bab2" text="Bab 2 — Penjumlahan sampai 10" />
+                                    <DropdownItem to="/s1/bab3" text="Bab 3 — Pengurangan sampai 10" />
                                     <DropdownItem to="/s1/bab4" text="Bab 4 — Mengenal Bentuk" />
                                 </div>
                             </div>
@@ -94,10 +94,10 @@ export default function Navbar() {
             bg-white shadow-lg border rounded-md w-64 transition-all duration-200
         "
                                 >
-                                    <DropdownItem to="/semester/2/bab5" text="Bab 5 — Membilang sampai 20" />
-                                    <DropdownItem to="/semester/2/bab6" text="Bab 6 — Penjumlahan & Pengurangan" />
-                                    <DropdownItem to="/semester/2/bab7" text="Bab 7 — Pengukuran Panjang Benda" />
-                                    <DropdownItem to="/semester/2/bab8" text="Bab 8 — Mengenal Diagram" />
+                                    <DropdownItem to="/s2/bab5" text="Bab 5 — Membilang sampai 20" />
+                                    <DropdownItem to="/s2/bab6" text="Bab 6 — Penjumlahan & Pengurangan" />
+                                    <DropdownItem to="/s2/bab7" text="Bab 7 — Pengukuran Panjang Benda" />
+                                    <DropdownItem to="/s2/bab8" text="Bab 8 — Mengenal Diagram" />
                                 </div>
                             </div>
 
