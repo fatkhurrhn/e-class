@@ -86,7 +86,7 @@ export default function IndexBab4() {
                             <span className="text-lg">🎮</span>
                             Permainan
                         </button>
-                        <button
+                        {/* <button
                             onClick={() => setActiveTab('materi')}
                             className={`flex items-center gap-2 px-6 py-4 font-medium border-b-2 transition-all duration-300 whitespace-nowrap 
                 ${activeTab === 'materi'
@@ -96,7 +96,7 @@ export default function IndexBab4() {
                         >
                             <span className="text-lg">📚</span>
                             Materi Pembelajaran
-                        </button>
+                        </button> */}
                     </div>
                 </div>
             </div>
@@ -122,14 +122,14 @@ export default function IndexBab4() {
                     />
                 )}
 
-                {activeTab === 'materi' && (
+                {/* {activeTab === 'materi' && (
                     <MateriTab
                         gameComponents={gameComponents}
                         activeGame={activeGame}
                         setActiveGame={setActiveGame}
                         setActiveTab={setActiveTab}
                     />
-                )}
+                )} */}
 
                 {/* Navigation Help */}
                 <div className="mt-12 pt-8 border-t border-[#e5e7eb]">

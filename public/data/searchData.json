@@ -15,18 +15,19 @@
     "path": "/s1/bab4"
   },
   {
-    "title": "Bab8",
-    "path": "/bab8/IndexBab8",
-    "type": "page",
-    "description": "",
-    "keywords": []
-  },
-  {
-    "title": "Bab8 /",
-    "path": "/s2/bab8",
-    "type": "page",
-    "description": "",
-    "keywords": []
+    "title": "Bab 8 - Mengenal Diagram",
+    "description": "Belajar memahami dan membaca berbagai jenis diagram melalui permainan seru",
+    "keywords": [
+      "diagram",
+      "diagram gambar",
+      "diagram batang",
+      "data",
+      "tabel",
+      "grafik"
+    ],
+    "type": "chapter",
+    "chapter": "Bab 8",
+    "path": "/s2/bab8"
   },
   {
     "title": "Home  /",

@@ -10,7 +10,7 @@ const GameTab = ({
     return (
         <div className="space-y-12">
             {/* Game Selection */}
-            <div>
+            {/* <div>
                 <h2 className="text-3xl font-bold text-[#355485] mb-6 flex items-center gap-3">
                     <span>🕹️</span>
                     Pilih Permainan
@@ -61,7 +61,7 @@ const GameTab = ({
                         </button>
                     ))}
                 </div>
-            </div>
+            </div> */}
 
             {/* Current Active Game */}
             <div>
