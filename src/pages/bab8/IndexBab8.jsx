@@ -22,7 +22,7 @@ import Game2 from '../../components/bab8/Game2';
  */
 
 export default function IndexBab8() {
-    const [activeTab, setActiveTab] = useState('game'); // 'info', 'game', 'materi'
+    const [activeTab, setActiveTab] = useState('info'); // 'info', 'game', 'materi'
     const [activeGame, setActiveGame] = useState(1); // Default ke Game 1
 
     const gameComponents = [
