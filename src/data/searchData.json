@@ -1,5 +1,35 @@
 [
   {
+    "title": "Bab 3 - pengurangan sampai 10",
+    "description": "lorem ipsem",
+    "keywords": [
+      "bangun datar",
+      "segitiga",
+      "persegi",
+      "lingkaran",
+      "geometri",
+      "bentuk"
+    ],
+    "type": "chapter",
+    "chapter": "Bab 3",
+    "path": "/s1/bab3"
+  },
+  {
+    "title": "Bab 3 - pengurangan sampai 10",
+    "description": "lorem ipsem",
+    "keywords": [
+      "bangun datar",
+      "segitiga",
+      "persegi",
+      "lingkaran",
+      "geometri",
+      "bentuk"
+    ],
+    "type": "chapter",
+    "chapter": "Bab 6",
+    "path": "/s2/bab6"
+  },
+  {
     "title": "Bab 4 - Mengenal Bentuk",
     "description": "Belajar mengenal berbagai bentuk geometri melalui permainan seru",
     "keywords": [
