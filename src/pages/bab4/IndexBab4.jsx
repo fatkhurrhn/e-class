@@ -22,7 +22,7 @@ import Game3PuzzleBentuk from '../../components/bab4/Game3PuzzleBentuk';
  */
 
 export default function IndexBab4() {
-    const [activeTab, setActiveTab] = useState('game'); // 'info', 'game', 'materi'
+    const [activeTab, setActiveTab] = useState('materi'); // 'info', 'game', 'materi'
     const [activeGame, setActiveGame] = useState(1); // Default ke Game 1
 
     const gameComponents = [
