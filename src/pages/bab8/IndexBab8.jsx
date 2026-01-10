@@ -22,7 +22,7 @@ import Game2 from '../../components/bab8/Game2';
  */
 
 export default function IndexBab8() {
-    const [activeTab, setActiveTab] = useState('info'); // 'info', 'game', 'materi'
+    const [activeTab, setActiveTab] = useState('game'); // 'info', 'game', 'materi'
     const [activeGame, setActiveGame] = useState(1); // Default ke Game 1
 
     const gameComponents = [
@@ -78,6 +78,17 @@ export default function IndexBab8() {
                             <span className="text-lg">🎮</span>
                             Permainan
                         </button>
+                        <button
+                            onClick={() => setActiveTab('materi')}
+                            className={`flex items-center gap-2 px-6 py-4 font-medium border-b-2 transition-all duration-300 whitespace-nowrap 
+                ${activeTab === 'materi'
+                                    ? 'border-[#4f90c6] text-[#355485]'
+                                    : 'border-transparent text-[#6b7280] hover:text-[#355485]'
+                                }`}
+                        >
+                            <span className="text-lg">📚</span>
+                            Materi Pembelajaran
+                        </button>
                     </div>
                 </div>
             </div>
@@ -103,32 +114,14 @@ export default function IndexBab8() {
                     />
                 )}
 
-                {/* Navigation Help */}
-                <div className="mt-12 pt-8 border-t border-[#e5e7eb]">
-                    <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-                        <div className="text-[#6b7280] text-sm">
-                            📊 Pelajari cara membaca dan memahami diagram dengan cara yang menyenangkan!
-                        </div>
-                        <div className="flex gap-3">
-                            <button
-                                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                                className="px-4 py-2 bg-[#f9fafb] text-[#355485] rounded-lg hover:bg-[#e5e7eb] transition-colors duration-300"
-                            >
-                                ↑ Kembali ke Atas
-                            </button>
-                            <button
-                                onClick={() => setActiveTab(
-                                    activeTab === 'info' ? 'game' :
-                                        activeTab === 'game' ? 'materi' : 'info'
-                                )}
-                                className="px-4 py-2 bg-gradient-to-r from-[#4f90c6] to-[#90b6d5] text-white rounded-lg 
-                         hover:from-[#3a7bb5] hover:to-[#7aa8d1] transition-all duration-300"
-                            >
-                                Lanjutkan →
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                {activeTab === 'materi' && (
+                    <MateriTab
+                        gameComponents={gameComponents}
+                        activeGame={activeGame}
+                        setActiveGame={setActiveGame}
+                        setActiveTab={setActiveTab}
+                    />
+                )}
             </div>
 
             <Footer />

@@ -9,6 +9,60 @@ const GameTab = ({
 }) => {
     return (
         <div className="space-y-12">
+            {/* Game Selection */}
+            <div>
+                <h2 className="text-3xl font-bold text-[#355485] mb-6 flex items-center gap-3">
+                    <span>🕹️</span>
+                    Pilih Permainan
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+                    {gameComponents.map((game) => (
+                        <button
+                            key={game.id}
+                            onClick={() => {
+                                setActiveGame(game.id);
+                                if (game.component) {
+                                    setActiveTab('game');
+                                }
+                            }}
+                            className={`text-left p-6 rounded-2xl border-2 transition-all duration-300 
+                ${game.component
+                                    ? 'border-[#4f90c6] bg-gradient-to-br from-[#f0f7ff] to-white hover:shadow-xl hover:border-[#355485]'
+                                    : 'border-[#e5e7eb] bg-white opacity-60 cursor-not-allowed'
+                                } 
+                ${activeGame === game.id ? 'ring-2 ring-[#4f90c6]' : ''}`}
+                            disabled={!game.component}
+                        >
+                            <div className="flex items-center gap-4 mb-4">
+                                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${game.color} flex items-center justify-center text-white text-xl`}>
+                                    {game.icon}
+                                </div>
+                                <div>
+                                    <h3 className="font-bold text-[#355485]">{game.title}</h3>
+                                    <div className="text-sm text-[#6b7280]">{game.subMateri}</div>
+                                </div>
+                            </div>
+                            <p className="text-[#6b7280] text-sm mb-4">{game.description}</p>
+                            <div className="flex items-center justify-between">
+                                <span className={`text-xs font-medium px-2 py-1 rounded-full 
+                  ${game.component
+                                        ? 'bg-[#f9fafb] text-[#355485]'
+                                        : 'bg-[#e5e7eb] text-[#9ca3af]'
+                                    }`}
+                                >
+                                    {game.component ? '✅ Tersedia' : '🕐 Segera Hadir'}
+                                </span>
+                                {game.component && (
+                                    <span className="text-xs text-[#4f90c6] font-semibold">
+                                        {activeGame === game.id ? '✓ Aktif' : '↪ Klik untuk main'}
+                                    </span>
+                                )}
+                            </div>
+                        </button>
+                    ))}
+                </div>
+            </div>
+
             {/* Current Active Game */}
             <div>
                 <div className="flex items-center justify-between mb-8">

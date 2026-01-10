@@ -1,4 +1,4 @@
-// src/components/bab4/MateriTab.jsx
+// src/components/bab8/MateriTab.jsx
 import React from 'react';
 
 const MateriTab = ({

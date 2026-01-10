@@ -1,164 +1,321 @@
-// src/components/bab8/game1/Game1.jsx
+// src/components/bab4/GameDiagramBentuk.jsx
 import React, { useState, useEffect, useRef } from 'react';
 
-const Game1 = () => {
-  // State untuk form nama
+const GameDiagramBentuk = () => {
+  // State game
+  const [gameStatus, setGameStatus] = useState('start'); // 'start', 'playing', 'end'
   const [playerName, setPlayerName] = useState('');
-  const [showNameInput, setShowNameInput] = useState(false);
-  const [gameStarted, setGameStarted] = useState(false);
-  const [gameFinished, setGameFinished] = useState(false);
-  const [isFullscreen, setIsFullscreen] = useState(false);
-
-  // State untuk game
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [score, setScore] = useState(0);
-  const [selectedAnswer, setSelectedAnswer] = useState(null);
-  const [isCorrect, setIsCorrect] = useState(null);
-  const [answers, setAnswers] = useState([]);
+  const [shuffledQuestions, setShuffledQuestions] = useState([]);
+  const [selectedAnswers, setSelectedAnswers] = useState({});
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const [gameHistory, setGameHistory] = useState([]);
+  const [playerMode, setPlayerMode] = useState(null); // 'named', 'anonymous'
+  const [showHint, setShowHint] = useState(false);
+  const [chartData, setChartData] = useState([]);
 
   const gameContainerRef = useRef(null);
+  const audioBenarRef = useRef(null);
+  const audioSalahRef = useRef(null);
+  const audioBerhasilRef = useRef(null);
+  const audioGagalRef = useRef(null);
+  const audioKlikRef = useRef(null);
 
-  // Data soal tentang pengelompokan data untuk kelas 1 SD
-  const questions = [
+  // Data soal diagram
+  const soalBank = [
     {
       id: 1,
-      question: "Ada 3 apel merah, 4 jeruk kuning, dan 2 pisang. Manakah diagram batang yang benar?",
-      type: "diagram",
-      image: "🍎🍎🍎 🍊🍊🍊🍊 🍌🍌",
-      options: [
-        { id: 'A', text: "Apel: 3, Jeruk: 4, Pisang: 2", correct: true },
-        { id: 'B', text: "Apel: 4, Jeruk: 3, Pisang: 2", correct: false },
-        { id: 'C', text: "Apel: 2, Jeruk: 4, Pisang: 3", correct: false },
-        { id: 'D', text: "Apel: 3, Jeruk: 2, Pisang: 4", correct: false }
-      ]
+      title: "Diagram Buah-buahan",
+      emoji: "🍎",
+      pertanyaan: "Berdasarkan diagram, berapa jumlah buah APEL?",
+      hint: "Lihat tinggi diagram untuk buah apel!",
+      tipe: "diagram_batang",
+      chartType: "bar",
+      data: [
+        { name: "🍎 Apel", value: 5, color: "#EF4444" },
+        { name: "🍌 Pisang", value: 3, color: "#F59E0B" },
+        { name: "🍊 Jeruk", value: 4, color: "#F97316" },
+        { name: "🍓 Stroberi", value: 2, color: "#EC4899" }
+      ],
+      pertanyaanDetail: "Diagram menunjukkan jumlah buah di keranjang:",
+      pilihan: [
+        { id: 'A', text: '3 buah', benar: false },
+        { id: 'B', text: '4 buah', benar: false },
+        { id: 'C', text: '5 buah', benar: true },
+        { id: 'D', text: '6 buah', benar: false }
+      ],
+      jawaban: 'C'
     },
     {
       id: 2,
-      question: "Di kelas ada 5 anak memakai sepatu hitam, 3 anak memakai sepatu putih. Berapa total anak?",
-      type: "jumlah",
-      image: "👟👟👟👟👟 (hitam) 👟👟👟 (putih)",
-      options: [
-        { id: 'A', text: "5 anak", correct: false },
-        { id: 'B', text: "3 anak", correct: false },
-        { id: 'C', text: "8 anak", correct: true },
-        { id: 'D', text: "7 anak", correct: false }
-      ]
+      title: "Diagram Bentuk Geometri",
+      emoji: "🔺",
+      pertanyaan: "Berdasarkan diagram, bentuk mana yang PALING SEDIKIT?",
+      hint: "Cari diagram dengan tinggi terpendek!",
+      tipe: "diagram_batang",
+      chartType: "bar",
+      data: [
+        { name: "🔺 Segitiga", value: 6, color: "#10B981" },
+        { name: "🟦 Kotak", value: 8, color: "#3B82F6" },
+        { name: "⭕ Lingkaran", value: 3, color: "#8B5CF6" },
+        { name: "⭐ Bintang", value: 5, color: "#F59E0B" }
+      ],
+      pertanyaanDetail: "Diagram menunjukkan jumlah bentuk di kotak:",
+      pilihan: [
+        { id: 'A', text: 'Segitiga', benar: false },
+        { id: 'B', text: 'Kotak', benar: false },
+        { id: 'C', text: 'Lingkaran', benar: true },
+        { id: 'D', text: 'Bintang', benar: false }
+      ],
+      jawaban: 'C'
     },
-    // ... (soal lainnya tetap sama)
+    {
+      id: 3,
+      title: "Diagram Hewan Peliharaan",
+      emoji: "🐶",
+      pertanyaan: "Berapa total jumlah hewan peliharaan?",
+      hint: "Jumlahkan semua diagram!",
+      tipe: "diagram_batang",
+      chartType: "bar",
+      data: [
+        { name: "🐶 Anjing", value: 4, color: "#8B5CF6" },
+        { name: "🐱 Kucing", value: 5, color: "#EC4899" },
+        { name: "🐰 Kelinci", value: 2, color: "#F97316" },
+        { name: "🐦 Burung", value: 3, color: "#06B6D4" }
+      ],
+      pertanyaanDetail: "Diagram menunjukkan hewan peliharaan di kelas:",
+      pilihan: [
+        { id: 'A', text: '12 hewan', benar: false },
+        { id: 'B', text: '14 hewan', benar: true },
+        { id: 'C', text: '16 hewan', benar: false },
+        { id: 'D', text: '18 hewan', benar: false }
+      ],
+      jawaban: 'B'
+    },
+    {
+      id: 4,
+      title: "Diagram Warna Balon",
+      emoji: "🎈",
+      pertanyaan: "Berapa selisih balon merah dan biru?",
+      hint: "Kurangi jumlah biru dari merah!",
+      tipe: "diagram_batang",
+      chartType: "bar",
+      data: [
+        { name: "🔴 Merah", value: 7, color: "#EF4444" },
+        { name: "🔵 Biru", value: 4, color: "#3B82F6" },
+        { name: "🟢 Hijau", value: 5, color: "#10B981" },
+        { name: "🟡 Kuning", value: 6, color: "#F59E0B" }
+      ],
+      pertanyaanDetail: "Diagram menunjukkan warna balon di pesta:",
+      pilihan: [
+        { id: 'A', text: '2 balon', benar: false },
+        { id: 'B', text: '3 balon', benar: true },
+        { id: 'C', text: '4 balon', benar: false },
+        { id: 'D', text: '5 balon', benar: false }
+      ],
+      jawaban: 'B'
+    },
+    {
+      id: 5,
+      title: "Diagram Alat Tulis",
+      emoji: "✏️",
+      pertanyaan: "Alat tulis mana yang jumlahnya SAMA?",
+      hint: "Cari diagram dengan tinggi sama!",
+      tipe: "diagram_batang",
+      chartType: "bar",
+      data: [
+        { name: "✏️ Pensil", value: 6, color: "#8B5CF6" },
+        { name: "🖍️ Krayon", value: 4, color: "#EC4899" },
+        { name: "📏 Penggaris", value: 4, color: "#06B6D4" },
+        { name: "✂️ Gunting", value: 2, color: "#10B981" }
+      ],
+      pertanyaanDetail: "Diagram menunjukkan alat tulis di meja:",
+      pilihan: [
+        { id: 'A', text: 'Pensil dan Penggaris', benar: false },
+        { id: 'B', text: 'Krayon dan Gunting', benar: false },
+        { id: 'C', text: 'Krayon dan Penggaris', benar: true },
+        { id: 'D', text: 'Pensil dan Krayon', benar: false }
+      ],
+      jawaban: 'C'
+    },
+    {
+      id: 6,
+      title: "Diagram Kendaraan",
+      emoji: "🚗",
+      pertanyaan: "Berapa jumlah kendaraan roda empat?",
+      hint: "Hitung mobil dan truk saja!",
+      tipe: "diagram_batang",
+      chartType: "bar",
+      data: [
+        { name: "🚗 Mobil", value: 5, color: "#3B82F6" },
+        { name: "🚲 Sepeda", value: 8, color: "#10B981" },
+        { name: "🛵 Motor", value: 6, color: "#F59E0B" },
+        { name: "🚚 Truk", value: 3, color: "#EF4444" }
+      ],
+      pertanyaanDetail: "Diagram menunjukkan kendaraan di parkiran:",
+      pilihan: [
+        { id: 'A', text: '5 kendaraan', benar: false },
+        { id: 'B', text: '8 kendaraan', benar: true },
+        { id: 'C', text: '10 kendaraan', benar: false },
+        { id: 'D', text: '12 kendaraan', benar: false }
+      ],
+      jawaban: 'B'
+    },
+    {
+      id: 7,
+      title: "Diagram Makanan",
+      emoji: "🍕",
+      pertanyaan: "Makanan apa yang PALING BANYAK?",
+      hint: "Cari diagram dengan tinggi tertinggi!",
+      tipe: "diagram_batang",
+      chartType: "bar",
+      data: [
+        { name: "🍕 Pizza", value: 9, color: "#F97316" },
+        { name: "🍔 Burger", value: 7, color: "#92400E" },
+        { name: "🍟 Kentang", value: 5, color: "#F59E0B" },
+        { name: "🍦 Es Krim", value: 8, color: "#06B6D4" }
+      ],
+      pertanyaanDetail: "Diagram menunjukkan makanan favorit siswa:",
+      pilihan: [
+        { id: 'A', text: 'Pizza', benar: true },
+        { id: 'B', text: 'Burger', benar: false },
+        { id: 'C', text: 'Kentang', benar: false },
+        { id: 'D', text: 'Es Krim', benar: false }
+      ],
+      jawaban: 'A'
+    },
+    {
+      id: 8,
+      title: "Diagram Benda Sekolah",
+      emoji: "🎒",
+      pertanyaan: "Berapa jumlah benda yang kurang dari 6?",
+      hint: "Hitung benda dengan diagram di bawah 6!",
+      tipe: "diagram_batang",
+      chartType: "bar",
+      data: [
+        { name: "📚 Buku", value: 8, color: "#8B5CF6" },
+        { name: "✏️ Pensil", value: 5, color: "#6B7280" },
+        { name: "📏 Penggaris", value: 3, color: "#06B6D4" },
+        { name: "🎨 Krayon", value: 4, color: "#EC4899" }
+      ],
+      pertanyaanDetail: "Diagram menunjukkan benda di tas sekolah:",
+      pilihan: [
+        { id: 'A', text: '1 benda', benar: false },
+        { id: 'B', text: '2 benda', benar: false },
+        { id: 'C', text: '3 benda', benar: true },
+        { id: 'D', text: '4 benda', benar: false }
+      ],
+      jawaban: 'C'
+    },
+    {
+      id: 9,
+      title: "Diagram Olahraga",
+      emoji: "⚽",
+      pertanyaan: "Berapa jumlah siswa yang suka bola basket?",
+      hint: "Lihat diagram untuk bola basket!",
+      tipe: "diagram_batang",
+      chartType: "bar",
+      data: [
+        { name: "⚽ Sepak Bola", value: 10, color: "#10B981" },
+        { name: "🏀 Basket", value: 6, color: "#EF4444" },
+        { name: "🏸 Badminton", value: 8, color: "#3B82F6" },
+        { name: "🏊 Renang", value: 7, color: "#06B6D4" }
+      ],
+      pertanyaanDetail: "Diagram menunjukkan olahraga favorit siswa:",
+      pilihan: [
+        { id: 'A', text: '6 siswa', benar: true },
+        { id: 'B', text: '7 siswa', benar: false },
+        { id: 'C', text: '8 siswa', benar: false },
+        { id: 'D', text: '10 siswa', benar: false }
+      ],
+      jawaban: 'A'
+    },
+    {
+      id: 10,
+      title: "Diagram Musim",
+      emoji: "🌞",
+      pertanyaan: "Musim apa yang dipilih 4 siswa?",
+      hint: "Cari diagram dengan tinggi 4!",
+      tipe: "diagram_batang",
+      chartType: "bar",
+      data: [
+        { name: "🌞 Panas", value: 7, color: "#F59E0B" },
+        { name: "☔ Hujan", value: 4, color: "#3B82F6" },
+        { name: "🍂 Gugur", value: 5, color: "#92400E" },
+        { name: "❄️ Dingin", value: 6, color: "#06B6D4" }
+      ],
+      pertanyaanDetail: "Diagram menunjukkan musim favorit siswa:",
+      pilihan: [
+        { id: 'A', text: 'Panas', benar: false },
+        { id: 'B', text: 'Hujan', benar: true },
+        { id: 'C', text: 'Gugur', benar: false },
+        { id: 'D', text: 'Dingin', benar: false }
+      ],
+      jawaban: 'B'
+    }
   ];
 
-  // Load game history dari localStorage
+  // Load history dari localStorage
   useEffect(() => {
-    const savedHistory = localStorage.getItem('game1_history');
+    const savedHistory = localStorage.getItem('game_diagram_history');
     if (savedHistory) {
-      const parsedHistory = JSON.parse(savedHistory);
-      const validHistory = parsedHistory.filter(h =>
-        h && h.playerName && h.score !== undefined && h.date
-      );
-      setGameHistory(validHistory.slice(0, 5));
+      setGameHistory(JSON.parse(savedHistory));
     }
   }, []);
 
-  const handleStartGame = () => {
-    setShowNameInput(true);
+  // Acak soal saat mulai
+  const acakSoal = () => {
+    const shuffled = [...soalBank]
+      .sort(() => Math.random() - 0.5)
+      .slice(0, 10);
+    setShuffledQuestions(shuffled);
+    setSelectedAnswers({});
   };
 
-  const handleSubmitName = () => {
-    if (playerName.trim() === '') {
-      alert('Masukkan nama kamu dulu ya!');
-      return;
+  useEffect(() => {
+    if (gameStatus === 'playing' && shuffledQuestions.length === 0) {
+      acakSoal();
     }
-    setGameStarted(true);
-    enterFullscreen();
-  };
+  }, [gameStatus]);
 
-  const handleAnswer = (option) => {
-    if (selectedAnswer !== null) return;
-
-    setSelectedAnswer(option.id);
-    const correct = option.correct;
-    setIsCorrect(correct);
-
-    if (correct) {
-      setScore(prev => prev + 10);
+  // Set chart data saat soal berubah
+  useEffect(() => {
+    if (gameStatus === 'playing' && shuffledQuestions.length > 0) {
+      const currentSoal = shuffledQuestions[currentQuestion];
+      setChartData(currentSoal.data);
     }
+  }, [currentQuestion, gameStatus, shuffledQuestions]);
 
-    setAnswers(prev => [...prev, {
-      questionId: questions[currentQuestion].id,
-      selected: option.id,
-      correct: correct
-    }]);
-
-    setTimeout(() => {
-      if (currentQuestion < questions.length - 1) {
-        setCurrentQuestion(prev => prev + 1);
-        setSelectedAnswer(null);
-        setIsCorrect(null);
+  // Fullscreen handler
+  const toggleFullscreen = async () => {
+    try {
+      if (!isFullscreen) {
+        if (gameContainerRef.current.requestFullscreen) {
+          await gameContainerRef.current.requestFullscreen();
+        } else if (gameContainerRef.current.webkitRequestFullscreen) {
+          await gameContainerRef.current.webkitRequestFullscreen();
+        } else if (gameContainerRef.current.msRequestFullscreen) {
+          await gameContainerRef.current.msRequestFullscreen();
+        }
+        setIsFullscreen(true);
       } else {
-        finishGame();
+        if (document.exitFullscreen) {
+          await document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+          await document.webkitExitFullscreen();
+        } else if (document.msExitFullscreen) {
+          await document.msExitFullscreen();
+        }
+        setIsFullscreen(false);
       }
-    }, 1500);
-  };
-
-  const finishGame = () => {
-    setGameFinished(true);
-
-    const totalScore = score;
-    const historyEntry = {
-      playerName,
-      score: totalScore,
-      date: new Date().toLocaleDateString('id-ID', {
-        day: 'numeric',
-        month: 'short',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      }),
-      correctAnswers: answers.filter(a => a.correct).length,
-      totalQuestions: questions.length
-    };
-
-    const newHistory = [historyEntry, ...gameHistory].slice(0, 5);
-    setGameHistory(newHistory);
-
-    const allHistory = JSON.parse(localStorage.getItem('game1_history') || '[]');
-    const updatedHistory = [historyEntry, ...allHistory].slice(0, 20);
-    localStorage.setItem('game1_history', JSON.stringify(updatedHistory));
-  };
-
-  // Fullscreen functions
-  const enterFullscreen = () => {
-    const elem = gameContainerRef.current;
-    if (elem.requestFullscreen) {
-      elem.requestFullscreen();
-    } else if (elem.webkitRequestFullscreen) {
-      elem.webkitRequestFullscreen();
-    } else if (elem.msRequestFullscreen) {
-      elem.msRequestFullscreen();
-    }
-    setIsFullscreen(true);
-  };
-
-  const exitFullscreen = () => {
-    if (document.exitFullscreen) {
-      document.exitFullscreen();
-    } else if (document.webkitExitFullscreen) {
-      document.webkitExitFullscreen();
-    } else if (document.msExitFullscreen) {
-      document.msExitFullscreen();
-    }
-    setIsFullscreen(false);
-  };
-
-  const toggleFullscreen = () => {
-    if (isFullscreen) {
-      exitFullscreen();
-    } else {
-      enterFullscreen();
+    } catch (err) {
+      console.log('Fullscreen error:', err);
     }
   };
 
+  // Listen untuk fullscreen change
   useEffect(() => {
     const handleFullscreenChange = () => {
       setIsFullscreen(!!document.fullscreenElement);
@@ -175,583 +332,1007 @@ const Game1 = () => {
     };
   }, []);
 
-  const restartGame = () => {
-    setGameStarted(false);
-    setGameFinished(false);
-    setShowNameInput(false);
-    setCurrentQuestion(0);
-    setScore(0);
-    setSelectedAnswer(null);
-    setIsCorrect(null);
-    setAnswers([]);
-    if (isFullscreen) {
-      exitFullscreen();
+  const playSound = (soundType) => {
+    try {
+      switch (soundType) {
+        case 'benar':
+          audioBenarRef.current.currentTime = 0;
+          audioBenarRef.current.play();
+          break;
+        case 'salah':
+          audioSalahRef.current.currentTime = 0;
+          audioSalahRef.current.play();
+          break;
+        case 'berhasil':
+          audioBerhasilRef.current.currentTime = 0;
+          audioBerhasilRef.current.play();
+          break;
+        case 'gagal':
+          audioGagalRef.current.currentTime = 0;
+          audioGagalRef.current.play();
+          break;
+        case 'klik':
+          audioKlikRef.current.currentTime = 0;
+          audioKlikRef.current.play();
+          break;
+      }
+    } catch (err) {
+      console.log('Audio error:', err);
     }
   };
 
-  // Tampilan input nama (popup)
-  if (showNameInput && !gameStarted) {
-    return (
-      <div ref={gameContainerRef} className="min-h-screen bg-gradient-to-br from-[#f0f7ff] to-[#e3f2fd] p-4 flex items-center justify-center">
-        <div className="max-w-md w-full bg-white rounded-2xl p-8 shadow-2xl border border-[#e5e7eb]">
-          <div className="text-center mb-8">
-            <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-[#4f90c6] to-[#90b6d5] rounded-full flex items-center justify-center text-white text-3xl">
-              👤
-            </div>
-            <h2 className="text-2xl font-bold text-[#355485] mb-2">Masukkan Nama Kamu</h2>
-            <p className="text-[#6b7280]">Sebelum mulai bermain, kenalkan diri dulu ya!</p>
-          </div>
+  const handleAnswer = (answerId) => {
+    if (showFeedback) return;
 
-          <div className="mb-6">
-            <input
-              type="text"
-              value={playerName}
-              onChange={(e) => setPlayerName(e.target.value)}
-              placeholder="Contoh: Andi, Sari, atau Budi"
-              className="w-full px-6 py-4 text-lg border-2 border-[#e5e7eb] rounded-xl focus:border-[#4f90c6] focus:outline-none transition-colors"
-              onKeyPress={(e) => e.key === 'Enter' && handleSubmitName()}
-              autoFocus
-            />
-          </div>
+    playSound('klik');
+    const currentSoal = shuffledQuestions[currentQuestion];
+    const isCorrect = answerId === currentSoal.jawaban;
 
-          <div className="flex gap-4">
-            <button
-              onClick={() => setShowNameInput(false)}
-              className="flex-1 px-6 py-3 bg-white border-2 border-[#e5e7eb] text-[#355485] font-semibold rounded-xl hover:border-[#4f90c6] hover:text-[#4f90c6] transition-all duration-300"
-            >
-              Kembali
-            </button>
-            <button
-              onClick={handleSubmitName}
-              className="flex-1 px-6 py-3 bg-gradient-to-r from-[#4f90c6] to-[#90b6d5] text-white text-lg font-semibold rounded-xl hover:from-[#3a7bb5] hover:to-[#7aa8d1] transition-all duration-300 transform hover:scale-[1.02] shadow-lg hover:shadow-xl"
-            >
-              🎮 Mulai Bermain
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
+    setSelectedAnswers(prev => ({
+      ...prev,
+      [currentSoal.id]: answerId
+    }));
 
-  // Tampilan awal - menu utama
-  if (!showNameInput && !gameStarted && !gameFinished) {
-    return (
-      <div ref={gameContainerRef} className="min-h-screen bg-gradient-to-br from-[#f0f7ff] to-[#e3f2fd] p-4">
-        <div className="max-w-6xl mx-auto">
-          {/* Header Utama */}
-          <div className="text-center mb-10">
-            <div className="w-32 h-32 mx-auto mb-6 bg-gradient-to-br from-[#4f90c6] to-[#90b6d5] rounded-full flex items-center justify-center text-white text-5xl animate-bounce">
-              📊
-            </div>
-            <h1 className="text-5xl font-bold text-[#355485] mb-4 bg-clip-text text-transparent bg-gradient-to-r from-[#355485] to-[#4f90c6]">
-              Mengelompokkan Data
-            </h1>
-            <p className="text-xl text-[#6b7280] max-w-2xl mx-auto">
-              Belajar membaca dan memahami diagram dengan cara yang menyenangkan!
-            </p>
-          </div>
+    setShowFeedback(true);
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
-            {/* Bagian Kiri - Aturan Permainan */}
-            <div className="bg-white rounded-3xl p-8 shadow-2xl border border-[#e5e7eb] transform hover:scale-[1.01] transition-transform duration-300">
-              <div className="flex items-center gap-4 mb-8">
-                <div className="w-16 h-16 bg-gradient-to-br from-[#4f90c6] to-[#90b6d5] rounded-xl flex items-center justify-center text-white text-2xl">
-                  📝
-                </div>
-                <div>
-                  <h2 className="text-2xl font-bold text-[#355485]">Aturan Permainan</h2>
-                  <p className="text-[#6b7280]">Pelajari cara bermain game ini</p>
-                </div>
-              </div>
+    if (isCorrect) {
+      playSound('benar');
+      setScore(score + 10);
+    } else {
+      playSound('salah');
+    }
 
-              <div className="space-y-6">
-                <div className="flex items-start gap-4 p-4 bg-gradient-to-r from-[#f8fafc] to-[#f0f7ff] rounded-xl">
-                  <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center text-green-600 text-lg flex-shrink-0">
-                    1
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-[#355485] mb-1">10 Soal Menantang</h3>
-                    <p className="text-[#6b7280]">Jawab 10 soal tentang pengelompokan data dan diagram</p>
-                  </div>
-                </div>
+    setTimeout(() => {
+      if (currentQuestion < 9) {
+        setCurrentQuestion(currentQuestion + 1);
+        setShowFeedback(false);
+        setShowHint(false);
+      } else {
+        saveGameResult();
+        setGameStatus('end');
+      }
+    }, 2000);
+  };
 
-                <div className="flex items-start gap-4 p-4 bg-gradient-to-r from-[#f8fafc] to-[#f0f7ff] rounded-xl">
-                  <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 text-lg flex-shrink-0">
-                    2
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-[#355485] mb-1">Sistem Poin</h3>
-                    <p className="text-[#6b7280]">Dapatkan 10 poin untuk setiap jawaban benar. Total maksimal 100 poin!</p>
-                  </div>
-                </div>
+  const saveGameResult = () => {
+    const finalName = playerMode === 'named' ? playerName : 'Tamu';
+    const result = {
+      id: Date.now(),
+      playerName: finalName,
+      score,
+      correctAnswers: score / 10,
+      totalQuestions: 10,
+      date: new Date().toLocaleDateString('id-ID'),
+      time: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
+      mode: playerMode,
+      gameType: 'Diagram Bentuk'
+    };
 
-                <div className="flex items-start gap-4 p-4 bg-gradient-to-r from-[#f8fafc] to-[#f0f7ff] rounded-xl">
-                  <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 text-lg flex-shrink-0">
-                    3
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-[#355485] mb-1">Waktu Terbatas</h3>
-                    <p className="text-[#6b7280]">Pilih jawaban dengan cepat dan tepat untuk mendapatkan skor tinggi</p>
-                  </div>
-                </div>
+    const newHistory = [result, ...gameHistory.slice(0, 4)];
+    setGameHistory(newHistory);
+    localStorage.setItem('game_diagram_history', JSON.stringify(newHistory));
 
-                <div className="flex items-start gap-4 p-4 bg-gradient-to-r from-[#f8fafc] to-[#f0f7ff] rounded-xl">
-                  <div className="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center text-yellow-600 text-lg flex-shrink-0">
-                    4
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-[#355485] mb-1">Mode Fullscreen</h3>
-                    <p className="text-[#6b7280]">Mainkan dalam mode layar penuh untuk pengalaman terbaik</p>
-                  </div>
-                </div>
-              </div>
+    if (score >= 70) {
+      playSound('berhasil');
+    } else {
+      playSound('gagal');
+    }
+  };
 
-              <div className="mt-8 p-6 bg-gradient-to-r from-[#355485] to-[#2a436c] rounded-2xl text-white">
-                <div className="flex items-center gap-4">
-                  <div className="text-3xl">💡</div>
-                  <div>
-                    <div className="font-bold text-lg mb-1">Tips Bermain</div>
-                    <div className="opacity-90">Perhatikan diagram dengan seksama dan hitung dengan teliti sebelum memilih jawaban!</div>
-                  </div>
-                </div>
-              </div>
-            </div>
+  const startGameWithName = () => {
+    if (playerName.trim()) {
+      setPlayerMode('named');
+      setGameStatus('playing');
+      acakSoal();
+    }
+  };
 
-            {/* Bagian Kanan - Riwayat Permainan */}
-            <div className="bg-white rounded-3xl p-8 shadow-2xl border border-[#e5e7eb] transform hover:scale-[1.01] transition-transform duration-300">
-              <div className="flex items-center gap-4 mb-8">
-                <div className="w-16 h-16 bg-gradient-to-br from-[#ff7e5f] to-[#feb47b] rounded-xl flex items-center justify-center text-white text-2xl">
-                  🏆
-                </div>
-                <div>
-                  <h2 className="text-2xl font-bold text-[#355485]">Riwayat Permainan</h2>
-                  <p className="text-[#6b7280]">Lihat pemain dengan skor tertinggi</p>
-                </div>
-              </div>
+  const startGameAnonymous = () => {
+    setPlayerMode('anonymous');
+    setPlayerName('Tamu');
+    setGameStatus('playing');
+    acakSoal();
+  };
 
-              {gameHistory.length === 0 ? (
-                <div className="text-center py-12">
-                  <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-r from-[#f0f7ff] to-[#e3f2fd] rounded-full flex items-center justify-center text-[#9ca3af] text-4xl">
-                    📊
-                  </div>
-                  <h3 className="text-xl font-bold text-[#9ca3af] mb-2">Belum Ada Riwayat</h3>
-                  <p className="text-[#9ca3af]">Jadilah yang pertama mencoba game ini!</p>
-                </div>
-              ) : (
-                <>
-                  {/* Peringkat 1 */}
-                  {gameHistory.length > 0 && (
-                    <div className="mb-6">
-                      <div className="text-center mb-4">
-                        <div className="w-12 h-12 mx-auto mb-2 bg-gradient-to-r from-[#ffd700] to-[#ffed4e] rounded-full flex items-center justify-center text-white text-xl font-bold">
-                          1
-                        </div>
-                        <div className="text-sm text-[#6b7280]">PEMUNCULI TOP</div>
-                      </div>
-                      <div className="bg-gradient-to-r from-[#fff8e1] to-[#ffecb3] rounded-2xl p-6 border border-[#ffd54f]">
-                        <div className="flex items-center justify-between mb-4">
-                          <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 bg-gradient-to-r from-[#4f90c6] to-[#90b6d5] rounded-full flex items-center justify-center text-white text-xl font-bold">
-                              {gameHistory[0].playerName.charAt(0)}
-                            </div>
-                            <div>
-                              <div className="font-bold text-[#355485] text-lg">{gameHistory[0].playerName}</div>
-                              <div className="text-sm text-[#6b7280]">{gameHistory[0].date}</div>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <div className="text-3xl font-bold text-[#355485]">{gameHistory[0].score}</div>
-                            <div className="text-sm text-[#6b7280]">Poin</div>
-                          </div>
-                        </div>
-                        <div className="text-center text-sm text-[#6b7280]">
-                          {gameHistory[0].correctAnswers} dari {gameHistory[0].totalQuestions} soal benar
-                        </div>
-                      </div>
+  const restartGame = () => {
+    setGameStatus('playing');
+    setCurrentQuestion(0);
+    setScore(0);
+    setSelectedAnswers({});
+    setShowFeedback(false);
+    setShowHint(false);
+    acakSoal();
+  };
+
+  const resetHistory = () => {
+    setGameHistory([]);
+    localStorage.removeItem('game_diagram_history');
+  };
+
+  const printResult = (history) => {
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`
+            <html>
+                <head>
+                    <title>Hasil Game Diagram Bentuk</title>
+                    <style>
+                        body {
+                            font-family: Arial, sans-serif;
+                            padding: 20px;
+                            color: #355485;
+                        }
+                        .header {
+                            text-align: center;
+                            margin-bottom: 30px;
+                            border-bottom: 3px solid #4f90c6;
+                            padding-bottom: 20px;
+                        }
+                        .result-card {
+                            border: 2px solid #90b6d5;
+                            border-radius: 15px;
+                            padding: 20px;
+                            margin: 20px 0;
+                            background: #f9fafb;
+                        }
+                        .score {
+                            font-size: 48px;
+                            font-weight: bold;
+                            color: #355485;
+                            text-align: center;
+                            margin: 20px 0;
+                        }
+                        .details {
+                            display: grid;
+                            grid-template-columns: 1fr 1fr;
+                            gap: 15px;
+                            margin-top: 20px;
+                        }
+                        .detail-item {
+                            padding: 10px;
+                            background: white;
+                            border-radius: 10px;
+                            border: 1px solid #cbdde9;
+                        }
+                        .skill-list {
+                            margin-top: 30px;
+                            padding: 15px;
+                            background: #e8f4ff;
+                            border-radius: 10px;
+                            border: 1px solid #90b6d5;
+                        }
+                        .footer {
+                            text-align: center;
+                            margin-top: 40px;
+                            color: #6b7280;
+                            font-size: 12px;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h1>📊 Hasil Game Diagram Bentuk</h1>
+                        <h3>Untuk Siswa Kelas 1 SD</h3>
                     </div>
-                  )}
+                    
+                    <div class="result-card">
+                        <h2>Pemain: ${history.playerName}</h2>
+                        <div class="score">${history.score}</div>
+                        <p style="text-align: center; font-size: 18px;">
+                            ${history.score >= 70 ? '📈 Hebat! Kamu jago membaca diagram!' : '📉 Terus berlatih membaca diagram!'}
+                        </p>
+                        
+                        <div class="details">
+                            <div class="detail-item">
+                                <strong>Tanggal:</strong><br>
+                                ${history.date}
+                            </div>
+                            <div class="detail-item">
+                                <strong>Waktu:</strong><br>
+                                ${history.time}
+                            </div>
+                            <div class="detail-item">
+                                <strong>Jawaban Benar:</strong><br>
+                                ${history.correctAnswers} dari 10 soal
+                            </div>
+                            <div class="detail-item">
+                                <strong>Persentase:</strong><br>
+                                ${history.score}%
+                            </div>
+                        </div>
+                        
+                        <div class="skill-list">
+                            <h4>📊 Kemampuan yang Dilatih:</h4>
+                            <ul>
+                                <li>Membaca dan memahami diagram</li>
+                                <li>Mengelompokkan data visual</li>
+                                <li>Menganalisis informasi grafik</li>
+                                <li>Membandingkan jumlah data</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="footer">
+                        <p>Game Diagram Bentuk - Materi Pembelajaran Kelas 1 SD</p>
+                        <p>Melatih kemampuan mengelompokkan data berdasarkan informasi diagram</p>
+                    </div>
+                </body>
+            </html>
+        `);
+    printWindow.document.close();
+    printWindow.print();
+  };
 
-                  {/* Peringkat 2-5 */}
-                  <div className="space-y-3">
-                    {gameHistory.slice(1, 5).map((history, index) => (
+  const progress = ((currentQuestion + 1) / 10) * 100;
+  const maxValue = chartData.length > 0 ? Math.max(...chartData.map(d => d.value)) : 10;
+
+  // Render Start Screen
+  if (gameStatus === 'start') {
+    return (
+      <>
+        {/* Audio elements */}
+        <audio ref={audioBenarRef} src="/audio/sound-benar.mp3" preload="auto" />
+        <audio ref={audioSalahRef} src="/audio/sound-salah.mp3" preload="auto" />
+        <audio ref={audioBerhasilRef} src="/audio/sound-berhasil.mp3" preload="auto" />
+        <audio ref={audioGagalRef} src="/audio/sound-gagal.mp3" preload="auto" />
+        <audio ref={audioKlikRef} src="/audio/klik.mp3" preload="auto" />
+
+        <div
+          ref={gameContainerRef}
+          className={`min-h-screen bg-gradient-to-b from-[#cbdde9] to-[#f9fafb] ${isFullscreen ? 'flex items-center justify-center p-4' : 'p-4 md:p-8'}`}
+        >
+          <div className={`w-full ${isFullscreen ? 'max-w-[1400px] mx-auto' : ''}`}>
+            {/* Header */}
+            <div className="text-center mb-8">
+              <div className="w-32 h-32 rounded-full bg-gradient-to-br from-[#8B5CF6] to-[#355485] flex items-center justify-center mx-auto mb-6 shadow-lg animate-bounce">
+                <span className="text-6xl">📊</span>
+              </div>
+              <h1 className="text-4xl font-bold text-[#355485] mb-3">
+                Game Diagram Bentuk
+              </h1>
+              <p className="text-[#6b7280] text-lg max-w-2xl mx-auto">
+                Untuk siswa kelas 1 SD. Latih kemampuan membaca diagram dan mengelompokkan data!
+              </p>
+            </div>
+
+            {/* Main Content - Two Columns */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+              {/* Left Column - Game Options */}
+              <div className="space-y-6">
+                <div className="bg-white rounded-2xl p-8 border-2 border-[#e5e7eb] shadow-lg">
+                  <h2 className="text-2xl font-bold text-[#355485] mb-6 flex items-center gap-3">
+                    <span className="text-3xl">🎯</span>
+                    Pilih Cara Bermain
+                  </h2>
+
+                  {/* Named Player Option */}
+                  <div className="mb-6">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-10 h-10 rounded-full bg-[#cbdde9] flex items-center justify-center">
+                        <span className="text-xl">👤</span>
+                      </div>
+                      <h3 className="text-lg font-bold text-[#355485]">Bermain dengan Nama</h3>
+                    </div>
+
+                    <div className="mb-4">
+                      <input
+                        type="text"
+                        value={playerName}
+                        onChange={(e) => setPlayerName(e.target.value)}
+                        placeholder="Masukkan nama kamu"
+                        className="w-full px-4 py-3 rounded-xl border-2 border-[#cbdde9] focus:border-[#8B5CF6] focus:outline-none bg-white text-[#355485] text-lg transition-all"
+                      />
+                    </div>
+
+                    <button
+                      onClick={startGameWithName}
+                      disabled={!playerName.trim()}
+                      className="w-full bg-gradient-to-r from-[#8B5CF6] to-[#355485] hover:from-[#7C3AED] hover:to-[#2a436c] disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-4 px-8 rounded-xl transition-all duration-300 transform hover:scale-[1.02] shadow-lg"
+                    >
+                      <span className="flex items-center justify-center gap-3 text-lg">
+                        <span className="text-xl">🚀</span>
+                        Mulai dengan Nama
+                      </span>
+                    </button>
+                  </div>
+
+                  {/* Divider */}
+                  <div className="flex items-center my-6">
+                    <div className="flex-1 h-px bg-[#e5e7eb]"></div>
+                    <span className="px-4 text-[#9ca3af]">ATAU</span>
+                    <div className="flex-1 h-px bg-[#e5e7eb]"></div>
+                  </div>
+
+                  {/* Anonymous Option */}
+                  <div>
+                    <button
+                      onClick={startGameAnonymous}
+                      className="w-full border-2 border-[#8B5CF6] hover:border-[#355485] text-[#8B5CF6] hover:text-[#355485] font-bold py-4 px-8 rounded-xl transition-all duration-300 transform hover:scale-[1.02]"
+                    >
+                      <span className="flex items-center justify-center gap-3 text-lg">
+                        <span className="text-xl">🎪</span>
+                        Main sebagai Tamu
+                      </span>
+                    </button>
+                    <p className="text-sm text-[#9ca3af] text-center mt-3">
+                      Hasil tidak akan disimpan dengan nama
+                    </p>
+                  </div>
+                </div>
+
+                {/* Fullscreen Button */}
+                <button
+                  onClick={toggleFullscreen}
+                  className="w-full border-2 border-[#e5e7eb] hover:border-[#9ca3af] hover:bg-white text-[#6b7280] py-4 px-8 rounded-xl transition-all duration-300 transform hover:scale-[1.02]"
+                >
+                  <span className="flex items-center justify-center gap-3">
+                    <span className="text-2xl">{isFullscreen ? '📱' : '🖥️'}</span>
+                    <span className="text-lg">{isFullscreen ? 'Keluar Fullscreen' : 'Mode Layar Penuh'}</span>
+                  </span>
+                </button>
+              </div>
+
+              {/* Right Column - History */}
+              <div className="bg-white rounded-2xl p-8 border-2 border-[#e5e7eb] shadow-lg">
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-2xl font-bold text-[#355485] flex items-center gap-3">
+                    <span className="text-3xl">🏆</span>
+                    <span>Riwayat Permainan</span>
+                  </h3>
+                  {gameHistory.length > 0 && (
+                    <button
+                      onClick={resetHistory}
+                      className="text-sm text-[#6b7280] hover:text-[#8B5CF6] hover:underline px-3 py-1 rounded-lg hover:bg-[#f9fafb] transition-colors"
+                    >
+                      Hapus Semua
+                    </button>
+                  )}
+                </div>
+
+                {gameHistory.length > 0 ? (
+                  <div className="space-y-4">
+                    {gameHistory.slice(0, 5).map((history, index) => (
                       <div
-                        key={index}
-                        className="flex items-center justify-between p-4 bg-gradient-to-r from-[#f8fafc] to-white rounded-xl border border-[#e5e7eb] hover:border-[#cbdde9] hover:shadow-md transition-all duration-300"
+                        key={history.id}
+                        className={`p-4 rounded-xl border transition-all hover:shadow-md ${index === 0 ? 'border-[#8B5CF6] bg-gradient-to-r from-[#f5f3ff] to-white' : 'border-[#e5e7eb] bg-[#f9fafb]'}`}
                       >
-                        <div className="flex items-center gap-4">
-                          <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${index === 0 ? 'bg-[#c0c0c0] text-white' : index === 1 ? 'bg-[#cd7f32] text-white' : 'bg-[#e5e7eb] text-[#6b7280]'}`}>
-                            {index + 2}
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3 mb-2">
+                              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${index === 0 ? 'bg-gradient-to-br from-[#8B5CF6] to-[#355485] text-white' : 'bg-[#cbdde9] text-[#355485]'}`}>
+                                <span className="font-bold">{index + 1}</span>
+                              </div>
+                              <div>
+                                <div className="font-bold text-[#355485]">{history.playerName}</div>
+                                <div className="text-sm text-[#9ca3af]">
+                                  {history.date} • {history.time}
+                                </div>
+                              </div>
+                              {index === 0 && (
+                                <span className="text-xs bg-[#8B5CF6] text-white px-3 py-1 rounded-full animate-pulse">
+                                  TERBARU
+                                </span>
+                              )}
+                            </div>
                           </div>
-                          <div className="w-10 h-10 bg-gradient-to-r from-[#e3f2fd] to-[#bbdefb] rounded-full flex items-center justify-center text-[#355485] font-bold">
-                            {history.playerName.charAt(0)}
-                          </div>
-                          <div>
-                            <div className="font-bold text-[#355485]">{history.playerName}</div>
-                            <div className="text-xs text-[#9ca3af]">{history.date}</div>
+                          <div className="text-right ml-4">
+                            <div className={`text-2xl font-bold mb-1 ${history.score >= 70 ? 'text-green-600' : 'text-red-600'}`}>
+                              {history.score}
+                            </div>
+                            <div className="text-sm text-[#9ca3af]">
+                              {history.correctAnswers}/10 soal
+                            </div>
                           </div>
                         </div>
-                        <div className="text-right">
-                          <div className={`text-xl font-bold ${history.score >= 80 ? 'text-green-600' : history.score >= 60 ? 'text-yellow-600' : 'text-red-600'}`}>
-                            {history.score}
-                          </div>
-                          <div className="text-xs text-[#9ca3af]">Poin</div>
+
+                        <div className="mt-4 flex justify-end">
+                          <button
+                            onClick={() => printResult(history)}
+                            className="text-sm bg-[#cbdde9] hover:bg-[#90b6d5] text-[#355485] font-medium px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
+                          >
+                            <span>🖨️</span>
+                            Print Hasil
+                          </button>
                         </div>
                       </div>
                     ))}
                   </div>
-                </>
-              )}
-            </div>
-          </div>
-
-          {/* Tombol Aksi */}
-          <div className="max-w-2xl mx-auto">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <button
-                onClick={handleStartGame}
-                className="group relative overflow-hidden px-8 py-6 bg-gradient-to-r from-[#4f90c6] to-[#90b6d5] text-white text-xl font-bold rounded-2xl hover:from-[#3a7bb5] hover:to-[#7aa8d1] transition-all duration-300 transform hover:scale-[1.02] shadow-2xl hover:shadow-3xl"
-              >
-                <div className="flex items-center justify-center gap-3">
-                  <span className="text-2xl">🎮</span>
-                  <span>MULAI PERMAINAN</span>
-                </div>
-                <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
-              </button>
-
-              <button
-                onClick={toggleFullscreen}
-                className="group relative overflow-hidden px-8 py-6 bg-gradient-to-r from-[#ff7e5f] to-[#feb47b] text-white text-xl font-bold rounded-2xl hover:from-[#ff6b47] hover:to-[#fea366] transition-all duration-300 transform hover:scale-[1.02] shadow-2xl hover:shadow-3xl"
-              >
-                <div className="flex items-center justify-center gap-3">
-                  <span className="text-2xl">{isFullscreen ? '📱' : '📺'}</span>
-                  <span>{isFullscreen ? 'KELUAR FULLSCREEN' : 'MODE FULLSCREEN'}</span>
-                </div>
-                <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
-              </button>
+                ) : (
+                  <div className="text-center py-12">
+                    <div className="text-5xl text-[#cbdde9] mb-4">📝</div>
+                    <p className="text-[#6b7280] font-medium text-lg">Belum ada riwayat permainan</p>
+                    <p className="text-sm text-[#9ca3af] mt-2">Mulai permainan untuk melihat riwayat di sini</p>
+                  </div>
+                )}
+              </div>
             </div>
 
-            {/* Statistik Game */}
-            <div className="mt-8 p-6 bg-gradient-to-r from-[#355485] to-[#2a436c] rounded-2xl text-white">
-              <div className="grid grid-cols-3 gap-4 text-center">
-                <div>
-                  <div className="text-3xl font-bold mb-1">10</div>
-                  <div className="text-sm opacity-90">Total Soal</div>
+            {/* Game Description */}
+            <div className="bg-gradient-to-r from-[#355485] to-[#8B5CF6] rounded-2xl p-8 text-white shadow-lg">
+              <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+                <div className="text-center md:text-left">
+                  <h3 className="text-2xl font-bold mb-3">📊 Tujuan Pembelajaran</h3>
+                  <p className="opacity-90 max-w-2xl">
+                    Game diagram yang melatih kemampuan mengelompokkan data berdasarkan informasi
+                    yang ditampilkan pada diagram gambar. Siswa belajar membaca diagram,
+                    menganalisis data visual, dan membuat kesimpulan sederhana.
+                  </p>
                 </div>
-                <div>
-                  <div className="text-3xl font-bold mb-1">100</div>
-                  <div className="text-sm opacity-90">Maksimal Poin</div>
-                </div>
-                <div>
-                  <div className="text-3xl font-bold mb-1">{gameHistory.length}</div>
-                  <div className="text-sm opacity-90">Pemain</div>
+                <div className="flex items-center gap-4">
+                  <div className="text-center">
+                    <div className="text-3xl">📈</div>
+                    <div className="text-sm">Diagram</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-3xl">🔢</div>
+                    <div className="text-sm">Data</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-3xl">🧮</div>
+                    <div className="text-sm">Analisis</div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      </>
     );
   }
 
-  // Tampilan game berjalan (tetap sama seperti sebelumnya)
-  if (gameStarted && !gameFinished) {
-    const question = questions[currentQuestion];
-    const progress = ((currentQuestion + 1) / questions.length) * 100;
+  // Render Game Screen
+  if (gameStatus === 'playing' && shuffledQuestions.length > 0) {
+    const soal = shuffledQuestions[currentQuestion];
+    const selectedAnswer = selectedAnswers[soal.id];
 
     return (
-      <div ref={gameContainerRef} className="min-h-screen bg-gradient-to-br from-[#f0f7ff] to-[#e3f2fd] p-4">
-        <div className="max-w-4xl mx-auto">
-          {/* Game Header dengan Fullscreen Button */}
-          <div className="bg-white rounded-2xl p-6 mb-6 shadow-xl border border-[#e5e7eb]">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-              <div>
-                <h1 className="text-2xl font-bold text-[#355485]">📊 Mengelompokkan Data</h1>
-                <div className="text-[#6b7280]">Pemain: <span className="font-semibold text-[#355485]">{playerName}</span></div>
-              </div>
+      <>
+        <audio ref={audioBenarRef} src="/audio/sound-benar.mp3" preload="auto" />
+        <audio ref={audioSalahRef} src="/audio/sound-salah.mp3" preload="auto" />
+        <audio ref={audioBerhasilRef} src="/audio/sound-berhasil.mp3" preload="auto" />
+        <audio ref={audioGagalRef} src="/audio/sound-gagal.mp3" preload="auto" />
+        <audio ref={audioKlikRef} src="/audio/klik.mp3" preload="auto" />
 
-              <div className="flex items-center gap-4">
-                <button
-                  onClick={toggleFullscreen}
-                  className="px-4 py-2 bg-gradient-to-r from-[#f0f7ff] to-[#e3f2fd] text-[#355485] font-semibold rounded-lg border border-[#e5e7eb] hover:border-[#4f90c6] hover:text-[#4f90c6] transition-all duration-300 flex items-center gap-2"
-                >
-                  {isFullscreen ? '📱 Keluar Fullscreen' : '📱 Mode Fullscreen'}
-                </button>
-                <div className="text-center">
-                  <div className="text-sm text-[#6b7280]">Skor</div>
-                  <div className="text-2xl font-bold text-[#355485]">{score}</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-sm text-[#6b7280]">Soal</div>
-                  <div className="text-2xl font-bold text-[#355485]">{currentQuestion + 1}/{questions.length}</div>
-                </div>
-              </div>
-            </div>
-
-            {/* Progress Bar */}
-            <div className="mb-4">
-              <div className="flex justify-between text-sm text-[#6b7280] mb-2">
-                <span>Progress</span>
-                <span>{Math.round(progress)}%</span>
-              </div>
-              <div className="h-3 bg-[#e5e7eb] rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-gradient-to-r from-[#4f90c6] to-[#90b6d5] rounded-full transition-all duration-300"
-                  style={{ width: `${progress}%` }}
-                ></div>
-              </div>
-            </div>
-          </div>
-
-          {/* Question Card */}
-          <div className="bg-white rounded-2xl p-6 shadow-xl border border-[#e5e7eb] mb-6">
-            {/* Question Header */}
-            <div className="flex items-start gap-4 mb-6">
-              <div className="w-14 h-14 bg-gradient-to-br from-[#4f90c6] to-[#90b6d5] rounded-xl flex items-center justify-center text-white text-2xl">
-                {currentQuestion + 1}
-              </div>
-              <div className="flex-1">
-                <div className="text-sm text-[#4f90c6] font-semibold mb-2">SOAL {currentQuestion + 1}</div>
-                <h2 className="text-xl font-bold text-[#355485] mb-3">{question.question}</h2>
-
-                {/* Visual Data */}
-                <div className="bg-gradient-to-r from-[#f8fafc] to-[#f0f7ff] rounded-xl p-4 mb-4">
-                  <div className="text-center text-2xl mb-2">{question.image}</div>
-                  <div className="text-center text-sm text-[#6b7280]">Data visual untuk dianalisis</div>
-                </div>
-              </div>
-            </div>
-
-            {/* Answer Options */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {question.options.map((option) => {
-                let buttonStyle = "bg-white border-2 border-[#e5e7eb] hover:border-[#4f90c6] text-[#355485]";
-
-                if (selectedAnswer === option.id) {
-                  buttonStyle = option.correct
-                    ? "bg-gradient-to-r from-green-50 to-green-100 border-2 border-green-400 text-green-700"
-                    : "bg-gradient-to-r from-red-50 to-red-100 border-2 border-red-400 text-red-700";
-                } else if (selectedAnswer !== null && option.correct) {
-                  buttonStyle = "bg-gradient-to-r from-green-50 to-green-100 border-2 border-green-400 text-green-700";
-                }
-
-                return (
-                  <button
-                    key={option.id}
-                    onClick={() => handleAnswer(option)}
-                    disabled={selectedAnswer !== null}
-                    className={`p-4 rounded-xl text-left transition-all duration-300 ${buttonStyle} ${selectedAnswer === null ? 'hover:scale-[1.02] hover:shadow-md' : ''
-                      }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold ${selectedAnswer === option.id
-                        ? option.correct ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
-                        : 'bg-[#f0f7ff] text-[#355485]'
-                        }`}>
-                        {option.id}
-                      </div>
-                      <span className="font-medium">{option.text}</span>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Feedback */}
-            {selectedAnswer !== null && (
-              <div className={`mt-6 p-4 rounded-xl ${isCorrect
-                ? 'bg-gradient-to-r from-green-50 to-green-100 border border-green-200'
-                : 'bg-gradient-to-r from-red-50 to-red-100 border border-red-200'
-                }`}>
-                <div className="flex items-center gap-3">
-                  <div className={`text-2xl ${isCorrect ? 'text-green-500' : 'text-red-500'}`}>
-                    {isCorrect ? '✅' : '❌'}
-                  </div>
-                  <div>
-                    <div className={`font-bold ${isCorrect ? 'text-green-700' : 'text-red-700'}`}>
-                      {isCorrect ? 'Jawaban Benar!' : 'Jawaban Salah'}
-                    </div>
-                    <div className="text-sm text-[#6b7280] mt-1">
-                      {isCorrect
-                        ? `Kamu mendapatkan 10 poin! (+10)`
-                        : 'Jawaban yang benar adalah: ' + question.options.find(o => o.correct)?.text}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Game Tips */}
-          <div className="bg-gradient-to-r from-[#f0f7ff] to-[#e3f2fd] rounded-2xl p-4 border border-[#cbdde9]">
-            <div className="flex items-center gap-3">
-              <div className="text-2xl">💡</div>
-              <div className="text-sm text-[#6b7280]">
-                <span className="font-bold text-[#355485]">Tips:</span> Perhatikan diagram dengan seksama sebelum memilih jawaban!
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Tampilan game selesai (tetap sama seperti sebelumnya)
-  if (gameFinished) {
-    const correctCount = answers.filter(a => a.correct).length;
-    const accuracy = Math.round((correctCount / questions.length) * 100);
-
-    return (
-      <div ref={gameContainerRef} className="min-h-screen bg-gradient-to-br from-[#f0f7ff] to-[#e3f2fd] p-4">
-        <div className="max-w-4xl mx-auto">
-          {/* Result Header */}
-          <div className="text-center mb-8">
-            <div className="w-24 h-24 mx-auto mb-4 bg-gradient-to-br from-[#4f90c6] to-[#90b6d5] rounded-full flex items-center justify-center text-white text-4xl">
-              🏆
-            </div>
-            <h1 className="text-4xl font-bold text-[#355485] mb-2">Permainan Selesai!</h1>
-            <p className="text-lg text-[#6b7280]">Hasil permainan untuk {playerName}</p>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Result Card */}
-            <div className="lg:col-span-2">
-              <div className="bg-white rounded-2xl p-8 shadow-xl border border-[#e5e7eb]">
-                {/* Score Summary */}
-                <div className="text-center mb-8">
-                  <div className={`text-6xl font-bold mb-4 ${score >= 80 ? 'text-green-500' :
-                    score >= 60 ? 'text-yellow-500' :
-                      'text-red-500'
-                    }`}>
-                    {score}/100
-                  </div>
-                  <div className="text-xl font-bold text-[#355485] mb-2">Total Skor</div>
+        <div
+          ref={gameContainerRef}
+          className={`min-h-screen bg-gradient-to-b from-[#cbdde9] to-[#f9fafb] ${isFullscreen ? 'flex items-center justify-center p-4' : 'p-4 md:p-8'}`}
+        >
+          <div className={`w-full ${isFullscreen ? 'max-w-[1200px] mx-auto' : ''}`}>
+            {/* Header */}
+            <div className="mb-8">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                <div>
+                  <h2 className="text-2xl font-bold text-[#355485] flex items-center gap-3">
+                    <span className="text-3xl">📊</span>
+                    Diagram Bentuk
+                  </h2>
                   <p className="text-[#6b7280]">
-                    Kamu menjawab {correctCount} dari {questions.length} soal dengan benar
+                    Pemain: <span className="font-semibold text-[#8B5CF6]">{playerName}</span>
                   </p>
                 </div>
 
-                {/* Stats Grid */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-                  <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-xl p-4 text-center">
-                    <div className="text-2xl font-bold text-green-700 mb-1">{correctCount}</div>
-                    <div className="text-sm text-green-600">Jawaban Benar</div>
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-6 bg-white px-6 py-3 rounded-xl border-2 border-[#e5e7eb] shadow-sm">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-[#8B5CF6]">{score}</div>
+                      <div className="text-xs text-[#9ca3af]">Poin</div>
+                    </div>
+                    <div className="w-px h-8 bg-[#e5e7eb]" />
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-[#8B5CF6]">{currentQuestion + 1}/10</div>
+                      <div className="text-xs text-[#9ca3af]">Soal</div>
+                    </div>
                   </div>
-                  <div className="bg-gradient-to-r from-red-50 to-red-100 rounded-xl p-4 text-center">
-                    <div className="text-2xl font-bold text-red-700 mb-1">{questions.length - correctCount}</div>
-                    <div className="text-sm text-red-600">Jawaban Salah</div>
+
+                  <button
+                    onClick={toggleFullscreen}
+                    className="p-3 rounded-xl border-2 border-[#e5e7eb] hover:border-[#9ca3af] hover:bg-white text-[#6b7280] hover:text-[#355485] transition-all duration-300"
+                    title={isFullscreen ? "Keluar Fullscreen" : "Mode Fullscreen"}
+                  >
+                    <span className="text-2xl">{isFullscreen ? '📱' : '🖥️'}</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Progress Numbers */}
+              <div className="mb-6">
+                <div className="flex justify-between mb-3">
+                  <span className="text-sm font-medium text-[#355485]">Progress Pengerjaan</span>
+                  <span className="text-sm font-medium text-[#8B5CF6]">
+                    Soal {currentQuestion + 1} dari 10
+                  </span>
+                </div>
+                <div className="flex justify-between items-center gap-2">
+                  {Array.from({ length: 10 }).map((_, index) => (
+                    <div
+                      key={index}
+                      className={`flex-1 h-12 rounded-xl flex items-center justify-center transition-all duration-300 ${index === currentQuestion
+                        ? 'bg-gradient-to-br from-[#8B5CF6] to-[#355485] text-white transform scale-105 shadow-lg'
+                        : index < currentQuestion
+                          ? 'bg-[#90b6d5] text-white'
+                          : 'bg-white border-2 border-[#cbdde9] text-[#9ca3af]'
+                        }`}
+                    >
+                      <span className="font-bold">{index + 1}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Main Content */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Left Column - Diagram */}
+              <div className="bg-white rounded-2xl p-8 border-2 border-[#e5e7eb] shadow-lg">
+                <div className="mb-8">
+                  <div className="flex items-center gap-4 mb-6">
+                    <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-[#8B5CF6] to-[#355485] flex items-center justify-center">
+                      <span className="text-4xl">{soal.emoji}</span>
+                    </div>
+                    <div>
+                      <div className="text-sm text-[#8B5CF6] font-bold mb-1">SOAL #{soal.id}</div>
+                      <h3 className="text-2xl font-bold text-[#355485]">{soal.title}</h3>
+                      <p className="text-[#6b7280] mt-1">{soal.pertanyaanDetail}</p>
+                    </div>
                   </div>
-                  <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl p-4 text-center">
-                    <div className="text-2xl font-bold text-blue-700 mb-1">{accuracy}%</div>
-                    <div className="text-sm text-blue-600">Akurasi</div>
-                  </div>
-                  <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-xl p-4 text-center">
-                    <div className="text-2xl font-bold text-purple-700 mb-1">{questions.length}</div>
-                    <div className="text-sm text-purple-600">Total Soal</div>
+
+                  {/* Diagram Visualization */}
+                  <div className="mb-8">
+                    <div className="text-center mb-4">
+                      <div className="text-sm text-[#6b7280] font-medium mb-2">DIAGRAM BATANG</div>
+                    </div>
+
+                    <div className="relative h-64">
+                      {/* Grid Lines */}
+                      <div className="absolute inset-0 flex flex-col justify-between">
+                        {[...Array(6)].map((_, i) => (
+                          <div key={i} className="border-t border-[#e5e7eb] w-full">
+                            <div className="absolute left-0 -ml-10 text-xs text-[#9ca3af]">
+                              {Math.round((maxValue / 5) * (5 - i))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Bars */}
+                      <div className="absolute inset-0 flex items-end justify-center gap-6 md:gap-8 pl-10">
+                        {chartData.map((item, index) => (
+                          <div key={index} className="flex flex-col items-center">
+                            <div
+                              className="w-12 md:w-16 rounded-t-lg transition-all duration-500"
+                              style={{
+                                height: `${(item.value / maxValue) * 180}px`,
+                                backgroundColor: item.color,
+                                boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+                              }}
+                            >
+                              <div className="h-full flex items-end justify-center p-1">
+                                <span className="text-white font-bold text-lg">
+                                  {item.value}
+                                </span>
+                              </div>
+                            </div>
+                            <div className="mt-2 text-center">
+                              <div className="text-2xl">{item.name.split(' ')[0]}</div>
+                              <div className="text-xs text-[#6b7280] mt-1">
+                                {item.name.split(' ').slice(1).join(' ')}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Legend */}
+                    <div className="mt-8 flex flex-wrap justify-center gap-3">
+                      {chartData.map((item, index) => (
+                        <div key={index} className="flex items-center gap-2 px-3 py-2 bg-[#f9fafb] rounded-lg border border-[#e5e7eb]">
+                          <div
+                            className="w-4 h-4 rounded"
+                            style={{ backgroundColor: item.color }}
+                          />
+                          <span className="text-sm text-[#355485]">{item.name}</span>
+                          <span className="text-sm font-bold text-[#8B5CF6]">({item.value})</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
 
-                {/* Action Buttons */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <button
-                    onClick={restartGame}
-                    className="px-6 py-4 bg-gradient-to-r from-[#4f90c6] to-[#90b6d5] text-white font-semibold rounded-xl hover:from-[#3a7bb5] hover:to-[#7aa8d1] transition-all duration-300 transform hover:scale-[1.02] shadow-lg hover:shadow-xl"
-                  >
-                    🔄 Main Lagi
-                  </button>
-                  <button
-                    onClick={() => {
-                      setGameStarted(false);
-                      setGameFinished(false);
-                      setShowNameInput(false);
-                      setCurrentQuestion(0);
-                      setScore(0);
-                      setSelectedAnswer(null);
-                      setIsCorrect(null);
-                      setAnswers([]);
-                      if (isFullscreen) {
-                        exitFullscreen();
-                      }
-                    }}
-                    className="px-6 py-4 bg-white border-2 border-[#e5e7eb] text-[#355485] font-semibold rounded-xl hover:border-[#4f90c6] hover:text-[#4f90c6] transition-all duration-300"
-                  >
-                    📝 Ganti Nama
-                  </button>
-                </div>
+                {/* Hint Button */}
+                <button
+                  onClick={() => setShowHint(!showHint)}
+                  className="w-full py-3 bg-gradient-to-r from-[#cbdde9] to-[#90b6d5] hover:from-[#90b6d5] hover:to-[#8B5CF6] text-[#355485] font-bold rounded-xl transition-all duration-300 transform hover:scale-[1.02]"
+                >
+                  <span className="flex items-center justify-center gap-3">
+                    <span className="text-xl">💡</span>
+                    {showHint ? 'Sembunyikan Petunjuk' : 'Tampilkan Petunjuk'}
+                  </span>
+                </button>
 
-                {/* Score Interpretation */}
-                <div className="mt-8 p-4 bg-gradient-to-r from-[#f0f7ff] to-[#e3f2fd] rounded-xl">
-                  <h4 className="font-bold text-[#355485] mb-3">📊 Interpretasi Skor:</h4>
-                  <div className="grid grid-cols-3 gap-2 text-sm">
-                    <div className={`text-center p-2 rounded ${score >= 80 ? 'bg-green-100 text-green-700 font-bold' : 'bg-gray-100 text-gray-500'}`}>
-                      80-100: Hebat!
+                {/* Hint Display */}
+                {showHint && !showFeedback && (
+                  <div className="mt-4 p-4 bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-200 rounded-xl animate-fade-in">
+                    <div className="flex items-start gap-3">
+                      <span className="text-2xl">💡</span>
+                      <div>
+                        <div className="font-bold text-[#355485] mb-1">Petunjuk:</div>
+                        <p className="text-[#6b7280]">{soal.hint}</p>
+                      </div>
                     </div>
-                    <div className={`text-center p-2 rounded ${score >= 60 && score < 80 ? 'bg-yellow-100 text-yellow-700 font-bold' : 'bg-gray-100 text-gray-500'}`}>
-                      60-79: Bagus!
+                  </div>
+                )}
+              </div>
+
+              {/* Right Column - Question & Answers */}
+              <div className="bg-white rounded-2xl p-8 border-2 border-[#e5e7eb] shadow-lg">
+                <div className="sticky top-8">
+                  {/* Question */}
+                  <div className="mb-8">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#8B5CF6] to-[#355485] flex items-center justify-center">
+                        <span className="text-2xl text-white">❓</span>
+                      </div>
+                      <div>
+                        <h4 className="text-lg font-bold text-[#355485]">Pertanyaan</h4>
+                      </div>
                     </div>
-                    <div className={`text-center p-2 rounded ${score < 60 ? 'bg-red-100 text-red-700 font-bold' : 'bg-gray-100 text-gray-500'}`}>
-                      &lt;60: Coba lagi!
+
+                    <div className="p-4 bg-gradient-to-r from-[#f5f3ff] to-white rounded-xl border-2 border-[#cbdde9]">
+                      <h3 className="text-xl font-bold text-[#355485] mb-2">{soal.pertanyaan}</h3>
+                      <p className="text-[#6b7280]">Pilih satu jawaban yang benar!</p>
+                    </div>
+                  </div>
+
+                  {/* Answer Options */}
+                  <div className="mb-8">
+                    <h4 className="font-bold text-[#355485] mb-4 flex items-center gap-2">
+                      <span className="text-xl">🎯</span>
+                      <span>Pilihan Jawaban</span>
+                    </h4>
+
+                    <div className="space-y-3">
+                      {soal.pilihan.map((option) => {
+                        const isSelected = selectedAnswer === option.id;
+                        const isCorrectAnswer = option.id === soal.jawaban;
+                        return (
+                          <button
+                            key={option.id}
+                            onClick={() => handleAnswer(option.id)}
+                            disabled={showFeedback}
+                            className={`w-full p-4 rounded-xl text-left transition-all duration-300 transform hover:scale-[1.02]
+                                                            ${isSelected
+                                ? showFeedback
+                                  ? isCorrectAnswer
+                                    ? 'bg-gradient-to-r from-green-100 to-emerald-100 border-4 border-green-400 text-green-900 shadow-lg'
+                                    : 'bg-gradient-to-r from-red-100 to-pink-100 border-4 border-red-400 text-red-900 shadow-lg'
+                                  : 'bg-gradient-to-r from-[#8B5CF6] to-[#355485] border-4 border-[#8B5CF6] text-white shadow-lg'
+                                : 'bg-gradient-to-r from-[#f9fafb] to-white border-2 border-[#e5e7eb] hover:border-[#cbdde9] hover:shadow-md text-[#355485]'
+                              }
+                                                            ${showFeedback && isCorrectAnswer && !isSelected
+                                ? 'bg-gradient-to-r from-green-100 to-emerald-100 border-4 border-green-400 text-green-900 shadow-lg'
+                                : ''
+                              }
+                                                        `}
+                          >
+                            <div className="flex items-center gap-4">
+                              <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-lg
+                                                                ${isSelected
+                                  ? showFeedback
+                                    ? isCorrectAnswer
+                                      ? 'bg-green-500 text-white'
+                                      : 'bg-red-500 text-white'
+                                    : 'bg-white text-[#8B5CF6]'
+                                  : 'bg-[#cbdde9] text-[#355485]'
+                                }
+                                                                ${showFeedback && isCorrectAnswer && !isSelected
+                                  ? 'bg-green-500 text-white'
+                                  : ''
+                                }
+                                                            `}>
+                                {option.id}
+                              </div>
+                              <div className="flex-1">
+                                <div className="text-lg font-bold">{option.text}</div>
+                              </div>
+                              {isSelected && showFeedback && (
+                                <span className="text-2xl animate-bounce">
+                                  {isCorrectAnswer ? '✅' : '❌'}
+                                </span>
+                              )}
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Feedback */}
+                  {showFeedback && (
+                    <div className={`p-6 rounded-xl text-center animate-fade-in shadow-lg
+                                            ${selectedAnswer === soal.jawaban
+                        ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-300'
+                        : 'bg-gradient-to-r from-red-50 to-pink-50 border-2 border-red-300'
+                      }`}
+                    >
+                      <div className="flex flex-col items-center gap-2">
+                        <span className="text-3xl">
+                          {selectedAnswer === soal.jawaban ? '📈' : '📉'}
+                        </span>
+                        <div className={`text-xl font-bold mb-1 ${selectedAnswer === soal.jawaban ? 'text-green-700' : 'text-red-700'}`}>
+                          {selectedAnswer === soal.jawaban
+                            ? 'BENAR!'
+                            : 'SALAH!'
+                          }
+                        </div>
+                        <p className="text-[#6b7280]">
+                          {selectedAnswer === soal.jawaban
+                            ? `Kamu mendapat 10 poin!`
+                            : `Jawaban yang benar adalah: ${soal.pilihan.find(p => p.id === soal.jawaban)?.text}`
+                          }
+                        </p>
+                      </div>
+                      <div className="mt-4 text-sm text-[#9ca3af]">
+                        Soal berikutnya akan dimulai otomatis...
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Statistics */}
+                  <div className="mt-8 p-4 bg-gradient-to-r from-[#f0f7ff] to-white border-2 border-[#cbdde9] rounded-xl">
+                    <h4 className="font-bold text-[#355485] mb-3 flex items-center gap-2">
+                      <span className="text-xl">📊</span>
+                      <span>Statistik Diagram</span>
+                    </h4>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="text-center p-2 bg-white rounded-lg border border-[#e5e7eb]">
+                        <div className="text-lg font-bold text-[#8B5CF6]">{chartData.length}</div>
+                        <div className="text-xs text-[#6b7280]">Kategori</div>
+                      </div>
+                      <div className="text-center p-2 bg-white rounded-lg border border-[#e5e7eb]">
+                        <div className="text-lg font-bold text-[#8B5CF6]">{maxValue}</div>
+                        <div className="text-xs text-[#6b7280]">Nilai Tertinggi</div>
+                      </div>
+                      <div className="text-center p-2 bg-white rounded-lg border border-[#e5e7eb]">
+                        <div className="text-lg font-bold text-[#8B5CF6]">
+                          {Math.min(...chartData.map(d => d.value))}
+                        </div>
+                        <div className="text-xs text-[#6b7280]">Nilai Terendah</div>
+                      </div>
+                      <div className="text-center p-2 bg-white rounded-lg border border-[#e5e7eb]">
+                        <div className="text-lg font-bold text-[#8B5CF6]">
+                          {chartData.reduce((sum, d) => sum + d.value, 0)}
+                        </div>
+                        <div className="text-xs text-[#6b7280]">Total</div>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      </>
+    );
+  }
 
-            {/* History & Ranking */}
-            <div className="lg:col-span-1">
-              <div className="bg-white rounded-2xl p-6 shadow-xl border border-[#e5e7eb] h-full">
-                <h3 className="text-xl font-bold text-[#355485] mb-6 flex items-center gap-2">
-                  <span>🏆</span> History Permainan Terbaru
+  // Render End Screen
+  if (gameStatus === 'end') {
+    const nilai = score;
+    const pesan = nilai === 100 ? 'LUAR BIASA!' : nilai >= 70 ? 'HEBAT!' : 'AYO LATIHAN LAGI!';
+
+    return (
+      <>
+        <audio ref={audioBenarRef} src="/audio/sound-benar.mp3" preload="auto" />
+        <audio ref={audioSalahRef} src="/audio/sound-salah.mp3" preload="auto" />
+        <audio ref={audioBerhasilRef} src="/audio/sound-berhasil.mp3" preload="auto" />
+        <audio ref={audioGagalRef} src="/audio/sound-gagal.mp3" preload="auto" />
+        <audio ref={audioKlikRef} src="/audio/klik.mp3" preload="auto" />
+
+        <div
+          ref={gameContainerRef}
+          className={`min-h-screen bg-gradient-to-b from-[#cbdde9] to-[#f9fafb] ${isFullscreen ? 'flex items-center justify-center p-4' : 'p-4 md:p-8'}`}
+        >
+          <div className={`w-full ${isFullscreen ? 'max-w-[1200px] mx-auto' : ''}`}>
+            <div className="text-center mb-8">
+              <div className={`w-32 h-32 rounded-full flex items-center justify-center mx-auto mb-6 shadow-2xl animate-bounce
+                                ${nilai === 100 ? 'bg-gradient-to-br from-yellow-300 to-orange-400' :
+                  nilai >= 70 ? 'bg-gradient-to-br from-green-300 to-emerald-400' :
+                    'bg-gradient-to-br from-blue-300 to-indigo-400'}`}
+              >
+                <span className="text-6xl">
+                  {nilai === 100 ? '🏆' : nilai >= 70 ? '📈' : '📊'}
+                </span>
+              </div>
+              <h1 className="text-4xl font-bold text-[#355485] mb-3">{pesan}</h1>
+              <p className="text-[#6b7280] text-lg mb-1">Selesai! Inilah Hasil Permainanmu</p>
+              <p className="text-[#8B5CF6] font-bold text-xl">Pemain: {playerName}</p>
+            </div>
+
+            {/* Two Column Layout */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+              {/* Left Column - Score Summary */}
+              <div className="bg-white rounded-2xl p-8 border-2 border-[#e5e7eb] shadow-lg">
+                <h3 className="font-bold text-[#355485] mb-8 flex items-center gap-3">
+                  <span className="text-3xl">📋</span>
+                  <span className="text-2xl">Hasil Permainan</span>
                 </h3>
 
-                {/* Current Game Result */}
-                <div className="mb-6 p-4 bg-gradient-to-r from-[#f0f7ff] to-[#e3f2fd] rounded-xl border border-[#cbdde9]">
-                  <div className="flex justify-between items-center mb-2">
-                    <div className="font-bold text-[#355485]">{playerName} (Kamu)</div>
-                    <div className={`px-3 py-1 rounded-full font-bold ${score >= 80 ? 'bg-green-100 text-green-700' : score >= 60 ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'}`}>
-                      {score}
+                {/* Score Circle */}
+                <div className="relative w-48 h-48 mx-auto mb-8">
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className={`text-5xl font-bold ${nilai >= 70 ? 'text-green-600' : 'text-red-600'}`}>
+                      {nilai}
                     </div>
                   </div>
-                  <div className="text-sm text-[#6b7280]">
-                    {correctCount} dari {questions.length} soal benar • Sekarang
-                  </div>
+                  <svg className="w-full h-full transform -rotate-90">
+                    <circle
+                      cx="96"
+                      cy="96"
+                      r="88"
+                      stroke="#e5e7eb"
+                      strokeWidth="16"
+                      fill="none"
+                    />
+                    <circle
+                      cx="96"
+                      cy="96"
+                      r="88"
+                      stroke={nilai >= 70 ? "#8B5CF6" : "#355485"}
+                      strokeWidth="16"
+                      fill="none"
+                      strokeDasharray={`${nilai * 5.5} 550`}
+                      strokeLinecap="round"
+                    />
+                  </svg>
                 </div>
 
-                {/* Previous Games */}
-                <div className="space-y-3">
-                  {gameHistory.slice(1, 5).map((history, index) => (
+                <div className="space-y-4">
+                  {[
+                    { label: 'Jawaban Benar', value: `${score / 10} dari 10` },
+                    { label: 'Total Poin', value: score },
+                    { label: 'Persentase', value: `${nilai}%` },
+                    { label: 'Status', value: nilai >= 70 ? '✅ BERHASIL' : '💪 PERLU LATIHAN', color: nilai >= 70 ? 'text-green-600' : 'text-red-600' }
+                  ].map((item, index) => (
+                    <div key={index} className="flex justify-between items-center p-4 bg-gradient-to-r from-[#f9fafb] to-white rounded-xl border-2 border-[#e5e7eb]">
+                      <span className="text-[#6b7280] font-medium">{item.label}</span>
+                      <span className={`font-bold text-lg ${item.color || 'text-[#355485]'}`}>{item.value}</span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Skills Developed */}
+                <div className="mt-8 p-6 rounded-xl bg-gradient-to-r from-[#f5f3ff] to-white border-2 border-[#8B5CF6]">
+                  <h4 className="font-bold text-[#355485] mb-3 flex items-center gap-2">
+                    <span className="text-xl">📊</span>
+                    Kemampuan yang Dilatih
+                  </h4>
+                  <div className="grid grid-cols-2 gap-2">
+                    {['Membaca Diagram', 'Analisis Data', 'Perbandingan', 'Kesimpulan'].map((skill, idx) => (
+                      <div key={idx} className="px-3 py-2 bg-[#cbdde9] rounded-lg text-center text-sm font-medium text-[#355485]">
+                        {skill}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Column - History */}
+              <div className="bg-white rounded-2xl p-8 border-2 border-[#e5e7eb] shadow-lg">
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="font-bold text-[#355485] flex items-center gap-3">
+                    <span className="text-3xl">📊</span>
+                    <span className="text-2xl">Riwayat Permainan</span>
+                  </h3>
+                  <button
+                    onClick={() => printResult(gameHistory[0])}
+                    className="bg-gradient-to-r from-[#8B5CF6] to-[#355485] hover:from-[#7C3AED] hover:to-[#2a436c] text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 flex items-center gap-2"
+                  >
+                    <span>🖨️</span>
+                    Print Hasil Ini
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  {gameHistory.slice(0, 5).map((history, index) => (
                     <div
-                      key={index}
-                      className="p-3 bg-white rounded-lg border border-[#e5e7eb] hover:border-[#cbdde9] transition-colors"
+                      key={history.id}
+                      className={`p-4 rounded-xl border-2 transition-all hover:shadow-md ${index === 0 ? 'border-[#8B5CF6] bg-gradient-to-r from-[#f5f3ff] to-white' : 'border-[#e5e7eb] bg-[#f9fafb]'}`}
                     >
                       <div className="flex justify-between items-center">
-                        <div>
-                          <div className="font-medium text-[#355485] text-sm">{history.playerName}</div>
-                          <div className="text-xs text-[#9ca3af]">{history.date}</div>
+                        <div className="flex items-center gap-3">
+                          <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${index === 0 ? 'bg-gradient-to-br from-[#8B5CF6] to-[#355485] text-white' : 'bg-[#cbdde9] text-[#355485]'}`}>
+                            {index + 1}
+                          </div>
+                          <div>
+                            <div className="font-bold text-[#355485]">{history.playerName}</div>
+                            <div className="text-sm text-[#9ca3af]">
+                              {history.date} • {history.time}
+                            </div>
+                          </div>
+                          {index === 0 && (
+                            <span className="text-xs bg-[#8B5CF6] text-white px-3 py-1 rounded-full animate-pulse">
+                              TERBARU
+                            </span>
+                          )}
                         </div>
-                        <div className={`px-2 py-1 rounded text-xs font-bold ${history.score >= 80 ? 'bg-green-100 text-green-700' : history.score >= 60 ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'}`}>
-                          {history.score}
+                        <div className="text-right">
+                          <div className={`text-2xl font-bold ${history.score >= 70 ? 'text-green-600' : 'text-red-600'}`}>
+                            {history.score}
+                          </div>
+                          <div className="text-sm text-[#9ca3af]">
+                            {history.correctAnswers}/10
+                          </div>
                         </div>
                       </div>
                     </div>
                   ))}
                 </div>
-
-                <div className="mt-6 p-4 bg-gradient-to-r from-[#355485] to-[#2a436c] rounded-xl text-white">
-                  <div className="flex items-center gap-3">
-                    <div className="text-2xl">🎯</div>
-                    <div className="text-sm">
-                      <div className="font-bold">Tips untuk Bermain Lagi</div>
-                      <div className="opacity-90 mt-1">Perhatikan diagram dengan teliti sebelum memilih jawaban!</div>
-                    </div>
-                  </div>
-                </div>
               </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex flex-col sm:flex-row gap-4 mb-8">
+              <button
+                onClick={restartGame}
+                className="flex-1 bg-gradient-to-r from-[#8B5CF6] to-[#355485] hover:from-[#7C3AED] hover:to-[#2a436c] text-white font-bold py-5 px-8 rounded-xl transition-all duration-300 transform hover:scale-[1.02] shadow-2xl"
+              >
+                <span className="flex items-center justify-center gap-3 text-lg">
+                  <span className="text-2xl">🔄</span>
+                  MAIN LAGI
+                </span>
+              </button>
+              <button
+                onClick={() => setGameStatus('start')}
+                className="flex-1 border-2 border-[#8B5CF6] hover:border-[#355485] text-[#8B5CF6] hover:text-[#355485] font-bold py-5 px-8 rounded-xl transition-all duration-300 transform hover:scale-[1.02]"
+              >
+                <span className="flex items-center justify-center gap-3 text-lg">
+                  <span className="text-2xl">🏠</span>
+                  MENU UTAMA
+                </span>
+              </button>
+            </div>
+
+            <div className="text-center">
+              <button
+                onClick={toggleFullscreen}
+                className="border-2 border-[#e5e7eb] hover:border-[#9ca3af] hover:bg-white text-[#6b7280] py-3 px-6 rounded-xl transition-all duration-300 hover:scale-[1.02] flex items-center gap-2 mx-auto"
+              >
+                <span className="text-xl">{isFullscreen ? '📱' : '🖥️'}</span>
+                {isFullscreen ? 'Keluar Fullscreen' : 'Mode Layar Penuh'}
+              </button>
             </div>
           </div>
         </div>
-      </div>
+      </>
     );
   }
+
+  // Loading state
+  return (
+    <>
+      <audio ref={audioBenarRef} src="/audio/sound-benar.mp3" preload="auto" />
+      <audio ref={audioSalahRef} src="/audio/sound-salah.mp3" preload="auto" />
+      <audio ref={audioBerhasilRef} src="/audio/sound-berhasil.mp3" preload="auto" />
+      <audio ref={audioGagalRef} src="/audio/sound-gagal.mp3" preload="auto" />
+      <audio ref={audioKlikRef} src="/audio/klik.mp3" preload="auto" />
+
+      <div
+        ref={gameContainerRef}
+        className={`min-h-screen bg-gradient-to-b from-[#cbdde9] to-[#f9fafb] flex items-center justify-center ${isFullscreen ? 'p-4' : ''}`}
+      >
+        <div className={`text-center ${isFullscreen ? 'max-w-[800px] w-full' : ''}`}>
+          <div className="relative">
+            <div className="w-24 h-24 border-4 border-[#cbdde9] border-t-[#8B5CF6] rounded-full animate-spin mx-auto mb-4" />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <span className="text-3xl">📊</span>
+            </div>
+          </div>
+          <h3 className="text-xl font-bold text-[#355485] mb-2">Menyiapkan Diagram...</h3>
+          <p className="text-[#6b7280]">Data diagram sedang diolah untukmu</p>
+        </div>
+      </div>
+    </>
+  );
 };
 
-export default Game1;
+export default GameDiagramBentuk;

@@ -86,7 +86,7 @@ export default function IndexBab4() {
                             <span className="text-lg">🎮</span>
                             Permainan
                         </button>
-                        {/* <button
+                        <button
                             onClick={() => setActiveTab('materi')}
                             className={`flex items-center gap-2 px-6 py-4 font-medium border-b-2 transition-all duration-300 whitespace-nowrap 
                 ${activeTab === 'materi'
@@ -96,7 +96,7 @@ export default function IndexBab4() {
                         >
                             <span className="text-lg">📚</span>
                             Materi Pembelajaran
-                        </button> */}
+                        </button>
                     </div>
                 </div>
             </div>
@@ -122,41 +122,14 @@ export default function IndexBab4() {
                     />
                 )}
 
-                {/* {activeTab === 'materi' && (
+                {activeTab === 'materi' && (
                     <MateriTab
                         gameComponents={gameComponents}
                         activeGame={activeGame}
                         setActiveGame={setActiveGame}
                         setActiveTab={setActiveTab}
                     />
-                )} */}
-
-                {/* Navigation Help */}
-                <div className="mt-12 pt-8 border-t border-[#e5e7eb]">
-                    <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-                        <div className="text-[#6b7280] text-sm">
-                            🎮 Gunakan menu di atas untuk menjelajahi semua fitur Bab 4
-                        </div>
-                        <div className="flex gap-3">
-                            <button
-                                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                                className="px-4 py-2 bg-[#f9fafb] text-[#355485] rounded-lg hover:bg-[#e5e7eb] transition-colors duration-300"
-                            >
-                                ↑ Kembali ke Atas
-                            </button>
-                            <button
-                                onClick={() => setActiveTab(
-                                    activeTab === 'info' ? 'game' :
-                                        activeTab === 'game' ? 'materi' : 'info'
-                                )}
-                                className="px-4 py-2 bg-gradient-to-r from-[#4f90c6] to-[#90b6d5] text-white rounded-lg 
-                         hover:from-[#3a7bb5] hover:to-[#7aa8d1] transition-all duration-300"
-                            >
-                                Lanjutkan →
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                )}
             </div>
 
             <Footer />

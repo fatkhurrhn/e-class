@@ -2,24 +2,13 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import AutoToTop from './components/AutoToTop';
 import HomePage from './pages/HomePage';
+import About from './pages/About';
 import Try from './pages/Try';
 import ComingSoon from './pages/ComingSoon';
-
-import Percobaan1 from './pages/percobaan/Percobaan1';
-import Percobaan2 from './pages/percobaan/Percobaan2';
-import Percobaan3 from './pages/percobaan/Percobaan3';
-import Percobaan4 from './pages/percobaan/Percobaan4';
-import Percobaan5 from './pages/percobaan/Percobaan5';
-import Percobaan6 from './pages/percobaan/Percobaan6';
-import Percobaan7 from './pages/percobaan/Percobaan7';
-import Percobaan8 from './pages/percobaan/Percobaan8';
-import Percobaan9 from './pages/percobaan/Percobaan9';
-import Percobaan10 from './pages/percobaan/Percobaan10';
-import About from './pages/About';
-import IndexBab4 from './pages/bab4/IndexBab4';
-import IndexBab8 from './pages/bab8/IndexBab8';
 import IndexBab3 from './pages/bab3/IndexBab3';
+import IndexBab4 from './pages/bab4/IndexBab4';
 import IndexBab6 from './pages/bab6/IndexBab6';
+import IndexBab8 from './pages/bab8/IndexBab8';
 function App() {
   return (
     <Router>
@@ -34,20 +23,9 @@ function App() {
         <Route path="/s1/bab4" element={<IndexBab4 />} />
 
         {/* route semester 2 */}
-        <Route path="/s2/bab8" element={<IndexBab8 />} />
         <Route path="/s2/bab6" element={<IndexBab6 />} />
+        <Route path="/s2/bab8" element={<IndexBab8 />} />
         
-        <Route path="/p1" element={<Percobaan1 />} />
-        <Route path="/p2" element={<Percobaan2 />} />
-        <Route path="/p3" element={<Percobaan3 />} />
-        <Route path="/p4" element={<Percobaan4 />} />
-        <Route path="/p5" element={<Percobaan5 />} />
-        <Route path="/p6" element={<Percobaan6 />} />
-        <Route path="/p7" element={<Percobaan7 />} />
-        <Route path="/p8" element={<Percobaan8 />} />
-        <Route path="/p9" element={<Percobaan9 />} />
-        <Route path="/p10" element={<Percobaan10 />} />
-
         {/* Catch-all untuk halaman yang tidak ada */}
         <Route path="/comingsoon" element={<ComingSoon />} />
         <Route path="*" element={<Navigate to="/comingsoon" replace />} />

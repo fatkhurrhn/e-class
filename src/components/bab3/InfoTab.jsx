@@ -1,4 +1,4 @@
-// src/components/bab4/InfoTab.jsx
+// src/components/bab3/InfoTab.jsx
 import React from 'react';
 
 const InfoTab = ({ gameComponents, activeGame, setActiveGame, setActiveTab }) => {

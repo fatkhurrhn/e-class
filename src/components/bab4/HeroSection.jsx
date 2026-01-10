@@ -33,9 +33,9 @@ function HeroSection() {
                               <div className="bg-white/10 backdrop-blur-sm rounded-full px-4 py-2">
                                   <span className="text-sm">🎮 Game Interaktif</span>
                               </div>
-                              {/* <div className="bg-white/10 backdrop-blur-sm rounded-full px-4 py-2">
+                              <div className="bg-white/10 backdrop-blur-sm rounded-full px-4 py-2">
                                   <span className="text-sm">📚 3 Sub Materi</span>
-                              </div> */}
+                              </div>
                               <div className="bg-white/10 backdrop-blur-sm rounded-full px-4 py-2">
                                   <span className="text-sm">🏆 Sistem Skor</span>
                               </div>
