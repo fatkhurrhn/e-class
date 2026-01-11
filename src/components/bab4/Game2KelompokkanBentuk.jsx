@@ -521,18 +521,6 @@ const GameKelompokkanBentuk = () => {
                     className={`min-h-screen bg-gradient-to-b from-[#cbdde9] to-[#f9fafb] ${isFullscreen ? 'flex items-center justify-center p-4' : 'p-4 md:p-8'}`}
                 >
                     <div className={`w-full ${isFullscreen ? 'max-w-[1400px] mx-auto' : ''}`}>
-                        {/* Header */}
-                        <div className="text-center mb-8">
-                            <div className="w-32 h-32 rounded-full bg-gradient-to-br from-[#10B981] to-[#355485] flex items-center justify-center mx-auto mb-6 shadow-lg animate-bounce">
-                                <span className="text-6xl">🧩</span>
-                            </div>
-                            <h1 className="text-4xl font-bold text-[#355485] mb-3">
-                                Game Kelompokkan Bentuk
-                            </h1>
-                            <p className="text-[#6b7280] text-lg max-w-2xl mx-auto">
-                                Untuk siswa kelas 1 SD. Latih kemampuan mengelompokkan dan mengklasifikasikan bentuk!
-                            </p>
-                        </div>
 
                         {/* Main Content - Two Columns */}
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
