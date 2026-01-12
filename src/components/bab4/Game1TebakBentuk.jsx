@@ -27,7 +27,7 @@ const GameTebakBentukKelas1 = () => {
         {
             id: 1,
             emoji: '🍕',
-            pertanyaan: "Bentuk pizza ini adalah?",
+            pertanyaan: "Bentuk asli pizza ini adalah?",
             pilihan: ['Bulat', 'Segitiga', 'Kotak', 'Persegi Panjang'],
             jawaban: 'Bulat',
             hint: "Pizza biasanya bulat seperti roda"
@@ -224,19 +224,23 @@ const GameTebakBentukKelas1 = () => {
                 setShowFeedback(false);
                 setShowHint(false);
             } else {
-                saveGameResult();
+                saveGameResult(benar); // PASS BENAR STATUS
                 setGameStatus('end');
             }
         }, 2000);
     };
 
-    const saveGameResult = () => {
+    const saveGameResult = (lastAnswerCorrect) => {
         const finalName = playerMode === 'named' ? playerName : 'Tamu';
+
+        // Hitung jawaban benar dengan benar
+        const correctAnswers = Math.floor(score / 10) + (lastAnswerCorrect ? 1 : 0);
+
         const result = {
             id: Date.now(),
             playerName: finalName,
-            score,
-            correctAnswers: score / 10,
+            score: score + (lastAnswerCorrect ? 10 : 0), // Update score terakhir
+            correctAnswers: correctAnswers,
             totalQuestions: 10,
             date: new Date().toLocaleDateString('id-ID'),
             time: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
@@ -247,8 +251,14 @@ const GameTebakBentukKelas1 = () => {
         setGameHistory(newHistory);
         localStorage.setItem('game_tebak_bentuk_history', JSON.stringify(newHistory));
 
+        // Update score akhir jika jawaban terakhir benar
+        if (lastAnswerCorrect) {
+            setScore(score + 10);
+        }
+
         // Play hasil sound
-        if (score >= 70) {
+        const finalScore = score + (lastAnswerCorrect ? 10 : 0);
+        if (finalScore >= 70) {
             playSound('berhasil');
         } else {
             playSound('gagal');
@@ -912,8 +922,8 @@ const GameTebakBentukKelas1 = () => {
 
                                 <div
                                     className={`mt-5 p-4 rounded-xl text-center text-sm font-semibold ${nilai >= 70
-                                            ? 'bg-green-50 text-green-700 border border-green-200'
-                                            : 'bg-blue-50 text-blue-700 border border-blue-200'
+                                        ? 'bg-green-50 text-green-700 border border-green-200'
+                                        : 'bg-blue-50 text-blue-700 border border-blue-200'
                                         }`}
                                 >
                                     {nilai >= 70
