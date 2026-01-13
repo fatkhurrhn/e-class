@@ -2,55 +2,55 @@
 import React, { useState } from 'react';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
-import HeroSection from '../../components/bab4/HeroSection';
-import InfoTab from '../../components/bab4/InfoTab';
-import GameTab from '../../components/bab4/GameTab';
-import MateriTab from '../../components/bab4/MateriTab';
+import HeroSection from '../../components/bab3/HeroSection';
+import InfoTab from '../../components/bab3/InfoTab';
+import GameTab from '../../components/bab3/GameTab';
+import MateriTab from '../../components/bab3/MateriTab';
 
-import Game1TebakBentuk from '../../components/bab4/Game1TebakBentuk';
-import Game2KelompokkanBentuk from '../../components/bab4/Game2KelompokkanBentuk';
-import Game3PuzzleBentuk from '../../components/bab4/Game3PuzzleBentuk';
+import Game1 from '../../components/bab3/Game1';
+import Game2 from '../../components/bab3/Game2';
+import Game3 from '../../components/bab3/Game3';
 
 /**
  * @searchdata
- * title: Bab 4 - Mengenal Bentuk
- * description: Belajar mengenal berbagai bentuk geometri melalui permainan seru
+ * title: Bab 3 - pengurangan sampai 10
+ * description: lorem ipsem
  * keywords: [bangun datar, segitiga, persegi, lingkaran, geometri, bentuk]
  * type: chapter
- * chapter: Bab 4
- * path: /s1/bab4
+ * chapter: Bab 3
+ * path: /s1/bab3
  */
 
-export default function IndexBab4() {
+export default function IndexBab3() {
     const [activeTab, setActiveTab] = useState('game'); // 'info', 'game', 'materi'
     const [activeGame, setActiveGame] = useState(1); // Default ke Game 1
 
     const gameComponents = [
         {
             id: 1,
-            title: "Tebak Bentuk dari Benda",
-            description: "Kenali bentuk geometri dari benda-benda sehari-hari",
-            component: <Game1TebakBentuk />,
-            icon: "🔍",
-            subMateri: "Mendeskripsikan benda berdasarkan bentuk",
+            title: "Pengurangan sederhana",
+            description: "mendeskripsikan cara menghitung pengurangan",
+            component: <Game1 />,
+            icon: "🧮",
+            subMateri: "memuat latihan cara mempasangkan bilangan dan membilang mundur ",
             color: "from-[#4f90c6] to-[#90b6d5]"
         },
         {
             id: 2,
-            title: "Kelompokkan Bentuk",
-            description: "Pilah dan kelompokkan bentuk berdasarkan jenisnya",
-            component: <Game2KelompokkanBentuk />,
-            icon: "🔄",
-            subMateri: "Mengelompokkan bangun datar",
+            title: "Soal cerita",
+            description: "memahami isi cerita pengurangan",
+            component: <Game2 />,
+            icon: "📖",
+            subMateri: "memuat latihan soal cerita bergambar yang interaktif",
             color: "from-[#355485] to-[#2a436c]"
         },
         {
             id: 3,
-            title: "Puzzle Bentuk",
-            description: "Susun bentuk-bentuk menjadi pola yang benar",
-            component: <Game3PuzzleBentuk />,
+            title: "Hubungan logika operasi ",
+            description: "memahami hubungan logika pengurangan dan berpikir kritis",
+            component: <Game3 />,
             icon: "🧩",
-            subMateri: "Menyusun dan mengurai bentuk bangun",
+            subMateri: "memuat teka-teki logika untuk menjawab persoalan",
             color: "from-purple-500 to-pink-500"
         }
     ];
@@ -86,17 +86,6 @@ export default function IndexBab4() {
                             <span className="text-lg">🎮</span>
                             Permainan
                         </button>
-                        <button
-                            onClick={() => setActiveTab('materi')}
-                            className={`flex items-center gap-2 px-6 py-4 font-medium border-b-2 transition-all duration-300 whitespace-nowrap 
-                ${activeTab === 'materi'
-                                    ? 'border-[#4f90c6] text-[#355485]'
-                                    : 'border-transparent text-[#6b7280] hover:text-[#355485]'
-                                }`}
-                        >
-                            <span className="text-lg">📚</span>
-                            Materi Pembelajaran
-                        </button>
                     </div>
                 </div>
             </div>
@@ -130,6 +119,33 @@ export default function IndexBab4() {
                         setActiveTab={setActiveTab}
                     />
                 )}
+
+                {/* Navigation Help */}
+                <div className="mt-12 pt-8 border-t border-[#e5e7eb]">
+                    <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+                        <div className="text-[#6b7280] text-sm">
+                            🎮 Gunakan menu di atas untuk menjelajahi semua fitur Bab 4
+                        </div>
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                                className="px-4 py-2 bg-[#f9fafb] text-[#355485] rounded-lg hover:bg-[#e5e7eb] transition-colors duration-300"
+                            >
+                                ↑ Kembali ke Atas
+                            </button>
+                            <button
+                                onClick={() => setActiveTab(
+                                    activeTab === 'info' ? 'game' :
+                                        activeTab === 'game' ? 'materi' : 'info'
+                                )}
+                                className="px-4 py-2 bg-gradient-to-r from-[#4f90c6] to-[#90b6d5] text-white rounded-lg 
+                         hover:from-[#3a7bb5] hover:to-[#7aa8d1] transition-all duration-300"
+                            >
+                                Lanjutkan →
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <Footer />

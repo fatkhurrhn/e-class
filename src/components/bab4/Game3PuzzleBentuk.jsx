@@ -1,678 +1,1315 @@
-// src/components/bab4/Game3PuzzleBentuk.jsx
-import React, { useState, useEffect } from 'react';
+// src/components/bab4/GamePuzzleBentukMudah.jsx
+import React, { useState, useEffect, useRef } from 'react';
 
-const Game3PuzzleBentuk = () => {
-    // Game states
-    const [gamePhase, setGamePhase] = useState('start');
+const GamePuzzleBentukMudah = () => {
+    // State game
+    const [gameStatus, setGameStatus] = useState('start'); // 'start', 'playing', 'end'
     const [playerName, setPlayerName] = useState('');
-    const [currentLevel, setCurrentLevel] = useState(1);
+    const [currentPuzzle, setCurrentPuzzle] = useState(0);
     const [score, setScore] = useState(0);
-    const [moves, setMoves] = useState(0);
-    const [timer, setTimer] = useState(60);
-    const [isPlaying, setIsPlaying] = useState(false);
+    const [shuffledPuzzles, setShuffledPuzzles] = useState([]);
+    const [isFullscreen, setIsFullscreen] = useState(false);
     const [gameHistory, setGameHistory] = useState([]);
-    const [puzzleCompleted, setPuzzleCompleted] = useState(false);
+    const [playerMode, setPlayerMode] = useState(null); // 'named', 'anonymous'
+    const [showHint, setShowHint] = useState(false);
+    const [selectedPieces, setSelectedPieces] = useState({});
+    const [correctPieces, setCorrectPieces] = useState({});
+    const [isChecking, setIsChecking] = useState(false);
 
-    // Puzzle data
-    const puzzles = [
+    const gameContainerRef = useRef(null);
+    const audioBenarRef = useRef(null);
+    const audioSalahRef = useRef(null);
+    const audioBerhasilRef = useRef(null);
+    const audioGagalRef = useRef(null);
+    const audioKlikRef = useRef(null);
+
+    // Data puzzle versi mudah
+    const puzzleBank = [
         {
             id: 1,
-            title: "Level 1: Puzzle Segitiga",
-            description: "Susun potongan menjadi segitiga sempurna",
-            image: '🔺',
+            title: "Bentuk Segitiga",
+            emoji: "🔺",
+            description: "Pilih bagian yang membentuk segitiga",
+            hint: "Segitiga punya 3 sisi dan 3 sudut",
+            correctPieces: ['A', 'C'],
             pieces: [
-                { id: 'p1', shape: '△', correctPosition: 0, currentPosition: 2 },
-                { id: 'p2', shape: '△', correctPosition: 1, currentPosition: 0 },
-                { id: 'p3', shape: '△', correctPosition: 2, currentPosition: 1 },
-                { id: 'p4', shape: '▽', correctPosition: 3, currentPosition: 3 }
-            ],
-            solution: ['△', '△', '△', '▽'],
-            hint: "Semua potongan segitiga harus di atas"
+                { id: 'A', emoji: '🔺', label: 'Segitiga', isCorrect: true },
+                { id: 'B', emoji: '🟦', label: 'Kotak', isCorrect: false },
+                { id: 'C', emoji: '🔺', label: 'Segitiga', isCorrect: true },
+                { id: 'D', emoji: '⭕', label: 'Lingkaran', isCorrect: false }
+            ]
         },
         {
             id: 2,
-            title: "Level 2: Puzzle Rumah",
-            description: "Buat rumah dari bentuk-bentuk geometri",
-            image: '🏠',
+            title: "Bentuk Bulat",
+            emoji: "⭕",
+            description: "Pilih semua bentuk yang BULAT",
+            hint: "Bentuk bulat tidak punya sudut",
+            correctPieces: ['B', 'D'],
             pieces: [
-                { id: 'p1', shape: '◼️', correctPosition: 0, currentPosition: 1 },
-                { id: 'p2', shape: '🔺', correctPosition: 1, currentPosition: 3 },
-                { id: 'p3', shape: '◼️', correctPosition: 2, currentPosition: 0 },
-                { id: 'p4', shape: '◼️', correctPosition: 3, currentPosition: 2 },
-                { id: 'p5', shape: '◻️', correctPosition: 4, currentPosition: 4 },
-                { id: 'p6', shape: '◻️', correctPosition: 5, currentPosition: 5 }
-            ],
-            solution: ['◼️', '🔺', '◼️', '◼️', '◻️', '◻️'],
-            hint: "Atap segitiga di atas, jendela persegi di bawah"
+                { id: 'A', emoji: '🔺', label: 'Segitiga', isCorrect: false },
+                { id: 'B', emoji: '⭕', label: 'Lingkaran', isCorrect: true },
+                { id: 'C', emoji: '🟦', label: 'Kotak', isCorrect: false },
+                { id: 'D', emoji: '⚽', label: 'Bola', isCorrect: true }
+            ]
         },
         {
             id: 3,
-            title: "Level 3: Puzzle Mobil",
-            description: "Susun bentuk menjadi gambar mobil",
-            image: '🚗',
+            title: "Bentuk Kotak",
+            emoji: "🟦",
+            description: "Pilih bentuk-bentuk KOTAK",
+            hint: "Kotak punya 4 sisi sama panjang",
+            correctPieces: ['A', 'C'],
             pieces: [
-                { id: 'p1', shape: '◼️', correctPosition: 0, currentPosition: 1 }, // Body
-                { id: 'p2', shape: '🔵', correctPosition: 1, currentPosition: 3 }, // Roda 1
-                { id: 'p3', shape: '🔵', correctPosition: 2, currentPosition: 5 }, // Roda 2
-                { id: 'p4', shape: '◻️', correctPosition: 3, currentPosition: 0 }, // Window
-                { id: 'p5', shape: '🔺', correctPosition: 4, currentPosition: 2 }, // Light
-                { id: 'p6', shape: '🔺', correctPosition: 5, currentPosition: 4 }, // Light 2
-                { id: 'p7', shape: '◼️', correctPosition: 6, currentPosition: 6 }, // Bumper
-                { id: 'p8', shape: '◼️', correctPosition: 7, currentPosition: 7 }  // Bumper 2
-            ],
-            solution: ['◼️', '🔵', '🔵', '◻️', '🔺', '🔺', '◼️', '◼️'],
-            hint: "Roda di bawah, lampu di depan, jendela di atas"
+                { id: 'A', emoji: '🟦', label: 'Kotak', isCorrect: true },
+                { id: 'B', emoji: '🔺', label: 'Segitiga', isCorrect: false },
+                { id: 'C', emoji: '📦', label: 'Kotak', isCorrect: true },
+                { id: 'D', emoji: '⭕', label: 'Lingkaran', isCorrect: false }
+            ]
         },
         {
             id: 4,
-            title: "Level 4: Puzzle Robot",
-            description: "Buat robot dari berbagai bentuk",
-            image: '🤖',
+            title: "Bentuk Bintang",
+            emoji: "⭐",
+            description: "Pilih potongan bintang",
+            hint: "Bintang punya 5 sudut yang runcing",
+            correctPieces: ['B', 'D'],
             pieces: [
-                { id: 'p1', shape: '🔲', correctPosition: 0, currentPosition: 1 }, // Head
-                { id: 'p2', shape: '🔵', correctPosition: 1, currentPosition: 3 }, // Eye 1
-                { id: 'p3', shape: '🔵', correctPosition: 2, currentPosition: 5 }, // Eye 2
-                { id: 'p4', shape: '◼️', correctPosition: 3, currentPosition: 0 }, // Body
-                { id: 'p5', shape: '🔺', correctPosition: 4, currentPosition: 2 }, // Antenna
-                { id: 'p6', shape: '🔺', correctPosition: 5, currentPosition: 4 }, // Antenna 2
-                { id: 'p7', shape: '◻️', correctPosition: 6, currentPosition: 6 }, // Arm 1
-                { id: 'p8', shape: '◻️', correctPosition: 7, currentPosition: 7 }, // Arm 2
-                { id: 'p9', shape: '🟦', correctPosition: 8, currentPosition: 9 }, // Leg 1
-                { id: 'p10', shape: '🟦', correctPosition: 9, currentPosition: 8 }  // Leg 2
-            ],
-            solution: ['🔲', '🔵', '🔵', '◼️', '🔺', '🔺', '◻️', '◻️', '🟦', '🟦'],
-            hint: "Kepala di atas, badan di tengah, kaki di bawah"
+                { id: 'A', emoji: '🔺', label: 'Segitiga', isCorrect: false },
+                { id: 'B', emoji: '⭐', label: 'Bintang', isCorrect: true },
+                { id: 'C', emoji: '🟦', label: 'Kotak', isCorrect: false },
+                { id: 'D', emoji: '⭐', label: 'Bintang', isCorrect: true }
+            ]
+        },
+        {
+            id: 5,
+            title: "Bentuk Hati",
+            emoji: "❤️",
+            description: "Pilih potongan hati",
+            hint: "Hati punya dua lengkungan di atas",
+            correctPieces: ['A', 'C'],
+            pieces: [
+                { id: 'A', emoji: '❤️', label: 'Hati', isCorrect: true },
+                { id: 'B', emoji: '🔺', label: 'Segitiga', isCorrect: false },
+                { id: 'C', emoji: '❤️', label: 'Hati', isCorrect: true },
+                { id: 'D', emoji: '🟦', label: 'Kotak', isCorrect: false }
+            ]
+        },
+        {
+            id: 6,
+            title: "Bentuk Persegi Panjang",
+            emoji: "📏",
+            description: "Pilih bentuk persegi panjang",
+            hint: "Persegi panjang lebih panjang daripada lebar",
+            correctPieces: ['B', 'D'],
+            pieces: [
+                { id: 'A', emoji: '⭕', label: 'Lingkaran', isCorrect: false },
+                { id: 'B', emoji: '📏', label: 'Penggaris', isCorrect: true },
+                { id: 'C', emoji: '🔺', label: 'Segitiga', isCorrect: false },
+                { id: 'D', emoji: '📱', label: 'HP', isCorrect: true }
+            ]
+        },
+        {
+            id: 7,
+            title: "Bentuk Segitiga dan Kotak",
+            emoji: "🔷",
+            description: "Pilih segitiga DAN kotak",
+            hint: "Pilih dua jenis bentuk yang berbeda",
+            correctPieces: ['A', 'C'],
+            pieces: [
+                { id: 'A', emoji: '🔺', label: 'Segitiga', isCorrect: true },
+                { id: 'B', emoji: '⭕', label: 'Lingkaran', isCorrect: false },
+                { id: 'C', emoji: '🟦', label: 'Kotak', isCorrect: true },
+                { id: 'D', emoji: '❤️', label: 'Hati', isCorrect: false }
+            ]
+        },
+        {
+            id: 8,
+            title: "Bentuk Lingkaran dan Bintang",
+            emoji: "✨",
+            description: "Pilih lingkaran DAN bintang",
+            hint: "Cari bentuk bulat dan bentuk runcing",
+            correctPieces: ['B', 'D'],
+            pieces: [
+                { id: 'A', emoji: '🔺', label: 'Segitiga', isCorrect: false },
+                { id: 'B', emoji: '⭕', label: 'Lingkaran', isCorrect: true },
+                { id: 'C', emoji: '🟦', label: 'Kotak', isCorrect: false },
+                { id: 'D', emoji: '⭐', label: 'Bintang', isCorrect: true }
+            ]
+        },
+        {
+            id: 9,
+            title: "Bentuk Warna Merah",
+            emoji: "🔴",
+            description: "Pilih semua bentuk berwarna MERAH",
+            hint: "Lihat warna bentuknya, bukan jenisnya",
+            correctPieces: ['A', 'C'],
+            pieces: [
+                { id: 'A', emoji: '🔴', label: 'Merah', isCorrect: true },
+                { id: 'B', emoji: '🔵', label: 'Biru', isCorrect: false },
+                { id: 'C', emoji: '🍎', label: 'Apel', isCorrect: true },
+                { id: 'D', emoji: '🟢', label: 'Hijau', isCorrect: false }
+            ]
+        },
+        {
+            id: 10,
+            title: "Bentuk Benda Sehari-hari",
+            emoji: "🏠",
+            description: "Pilih benda yang berbentuk KOTAK",
+            hint: "Pilih benda dengan sudut-sudut siku",
+            correctPieces: ['B', 'C'],
+            pieces: [
+                { id: 'A', emoji: '⚽', label: 'Bola', isCorrect: false },
+                { id: 'B', emoji: '📦', label: 'Kotak', isCorrect: true },
+                { id: 'C', emoji: '📱', label: 'HP', isCorrect: true },
+                { id: 'D', emoji: '🍕', label: 'Pizza', isCorrect: false }
+            ]
         }
     ];
 
-    // Current puzzle state
-    const [currentPuzzle, setCurrentPuzzle] = useState(puzzles[0]);
-    const [puzzlePieces, setPuzzlePieces] = useState([]);
-    const [puzzleGrid, setPuzzleGrid] = useState([]);
-    const [selectedPiece, setSelectedPiece] = useState(null);
-    const [hintUsed, setHintUsed] = useState(false);
-
-    // Load history
+    // Load history dari localStorage
     useEffect(() => {
-        const savedHistory = localStorage.getItem('game3_history');
+        const savedHistory = localStorage.getItem('game_puzzle_mudah_history');
         if (savedHistory) {
             setGameHistory(JSON.parse(savedHistory));
         }
     }, []);
 
-    // Timer effect
+    // Acak puzzle saat mulai
+    const acakPuzzle = () => {
+        const shuffled = [...puzzleBank]
+            .sort(() => Math.random() - 0.5)
+            .slice(0, 10);
+        setShuffledPuzzles(shuffled);
+        setSelectedPieces({});
+        setCorrectPieces({});
+    };
+
     useEffect(() => {
-        let interval;
-        if (isPlaying && timer > 0 && gamePhase === 'playing' && !puzzleCompleted) {
-            interval = setInterval(() => {
-                setTimer(prev => prev - 1);
-            }, 1000);
-        } else if (timer === 0 && gamePhase === 'playing') {
-            handleLevelComplete(false);
+        if (gameStatus === 'playing' && shuffledPuzzles.length === 0) {
+            acakPuzzle();
         }
-        return () => clearInterval(interval);
-    }, [isPlaying, timer, gamePhase, puzzleCompleted]);
+    }, [gameStatus]);
 
-    // Initialize puzzle
-    useEffect(() => {
-        if (gamePhase === 'playing') {
-            const puzzle = puzzles[currentLevel - 1];
-            setCurrentPuzzle(puzzle);
-
-            // Shuffle pieces for the puzzle area
-            const shuffledPieces = [...puzzle.pieces]
-                .sort(() => Math.random() - 0.5)
-                .map(piece => ({ ...piece }));
-
-            setPuzzlePieces(shuffledPieces);
-
-            // Initialize empty grid
-            const emptyGrid = Array(puzzle.pieces.length).fill(null);
-            setPuzzleGrid(emptyGrid);
-
-            setTimer(60);
-            setMoves(0);
-            setPuzzleCompleted(false);
-            setHintUsed(false);
-            setIsPlaying(true);
-        }
-    }, [currentLevel, gamePhase]);
-
-    // Check puzzle completion
-    useEffect(() => {
-        if (gamePhase === 'playing' && puzzleGrid.length > 0) {
-            const isComplete = puzzleGrid.every((cell, index) => {
-                if (cell === null) return false;
-                return cell.shape === currentPuzzle.solution[index];
-            });
-
-            if (isComplete && puzzleGrid.filter(cell => cell !== null).length === currentPuzzle.pieces.length) {
-                setPuzzleCompleted(true);
-                setTimeout(() => handleLevelComplete(true), 1000);
-            }
-        }
-    }, [puzzleGrid, gamePhase]);
-
-    const handleStartGame = () => {
-        setGamePhase('name');
-    };
-
-    const handleNameSubmit = (e) => {
-        e.preventDefault();
-        if (playerName.trim()) {
-            setGamePhase('playing');
-        }
-    };
-
-    const handlePieceSelect = (piece) => {
-        if (!isPlaying || puzzleCompleted) return;
-        setSelectedPiece(piece);
-    };
-
-    const handleGridClick = (gridIndex) => {
-        if (!selectedPiece || !isPlaying || puzzleCompleted) return;
-
-        // Place piece in grid
-        const newGrid = [...puzzleGrid];
-        newGrid[gridIndex] = selectedPiece;
-        setPuzzleGrid(newGrid);
-
-        // Remove from available pieces
-        setPuzzlePieces(prev => prev.filter(p => p.id !== selectedPiece.id));
-
-        // Increment moves and score
-        setMoves(prev => prev + 1);
-
-        // Check if correct position
-        if (gridIndex === selectedPiece.correctPosition) {
-            setScore(prev => prev + 50);
-        }
-
-        setSelectedPiece(null);
-    };
-
-    const handleGridRemove = (gridIndex) => {
-        if (!isPlaying || puzzleCompleted) return;
-
-        const piece = puzzleGrid[gridIndex];
-        if (!piece) return;
-
-        // Remove from grid
-        const newGrid = [...puzzleGrid];
-        newGrid[gridIndex] = null;
-        setPuzzleGrid(newGrid);
-
-        // Add back to available pieces
-        setPuzzlePieces(prev => [...prev, piece]);
-
-        setMoves(prev => prev + 1);
-    };
-
-    const handleHint = () => {
-        if (hintUsed || !isPlaying) return;
-
-        // Find first incorrect piece
-        for (let i = 0; i < puzzleGrid.length; i++) {
-            if (puzzleGrid[i] && puzzleGrid[i].correctPosition !== i) {
-                // Highlight the correct position
-                const hintElement = document.getElementById(`grid-${puzzleGrid[i].correctPosition}`);
-                if (hintElement) {
-                    hintElement.classList.add('animate-pulse', 'ring-2', 'ring-yellow-500');
-                    setTimeout(() => {
-                        hintElement.classList.remove('animate-pulse', 'ring-2', 'ring-yellow-500');
-                    }, 2000);
+    // Fullscreen handler
+    const toggleFullscreen = async () => {
+        try {
+            if (!isFullscreen) {
+                if (gameContainerRef.current.requestFullscreen) {
+                    await gameContainerRef.current.requestFullscreen();
+                } else if (gameContainerRef.current.webkitRequestFullscreen) {
+                    await gameContainerRef.current.webkitRequestFullscreen();
+                } else if (gameContainerRef.current.msRequestFullscreen) {
+                    await gameContainerRef.current.msRequestFullscreen();
                 }
-                break;
+                setIsFullscreen(true);
+            } else {
+                if (document.exitFullscreen) {
+                    await document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) {
+                    await document.webkitExitFullscreen();
+                } else if (document.msExitFullscreen) {
+                    await document.msExitFullscreen();
+                }
+                setIsFullscreen(false);
             }
+        } catch (err) {
+            console.log('Fullscreen error:', err);
         }
-
-        setHintUsed(true);
-        setScore(prev => Math.max(0, prev - 20)); // Penalty for using hint
     };
 
-    const handleLevelComplete = (success) => {
-        setIsPlaying(false);
+    // Listen untuk fullscreen change
+    useEffect(() => {
+        const handleFullscreenChange = () => {
+            setIsFullscreen(!!document.fullscreenElement);
+        };
 
-        if (success) {
-            // Bonus points for remaining time and efficiency
-            const timeBonus = Math.floor(timer * 2);
-            const moveBonus = Math.max(0, 100 - (moves * 5));
-            const levelBonus = currentLevel * 100;
+        document.addEventListener('fullscreenchange', handleFullscreenChange);
+        document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+        document.addEventListener('msfullscreenchange', handleFullscreenChange);
 
-            setScore(prev => prev + timeBonus + moveBonus + levelBonus);
+        return () => {
+            document.removeEventListener('fullscreenchange', handleFullscreenChange);
+            document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+            document.removeEventListener('msfullscreenchange', handleFullscreenChange);
+        };
+    }, []);
 
-            if (currentLevel < puzzles.length) {
-                setTimeout(() => {
-                    setCurrentLevel(prev => prev + 1);
-                    setPuzzleCompleted(false);
-                }, 2000);
-            } else {
-                // Game complete
-                setTimeout(() => {
-                    saveGameResult();
-                    setGamePhase('result');
-                }, 2500);
+    const playSound = (soundType) => {
+        try {
+            switch (soundType) {
+                case 'benar':
+                    audioBenarRef.current.currentTime = 0;
+                    audioBenarRef.current.play();
+                    break;
+                case 'salah':
+                    audioSalahRef.current.currentTime = 0;
+                    audioSalahRef.current.play();
+                    break;
+                case 'berhasil':
+                    audioBerhasilRef.current.currentTime = 0;
+                    audioBerhasilRef.current.play();
+                    break;
+                case 'gagal':
+                    audioGagalRef.current.currentTime = 0;
+                    audioGagalRef.current.play();
+                    break;
+                case 'klik':
+                    audioKlikRef.current.currentTime = 0;
+                    audioKlikRef.current.play();
+                    break;
             }
-        } else {
-            // Time's up or quit
-            saveGameResult();
-            setGamePhase('result');
+        } catch (err) {
+            console.log('Audio error:', err);
         }
+    };
+
+    const togglePieceSelection = (puzzleId, pieceId) => {
+        if (isChecking) return;
+        
+        playSound('klik');
+        setSelectedPieces(prev => {
+            const current = prev[puzzleId] || [];
+            if (current.includes(pieceId)) {
+                return {
+                    ...prev,
+                    [puzzleId]: current.filter(id => id !== pieceId)
+                };
+            } else {
+                // Maksimal 2 pilihan
+                if (current.length < 2) {
+                    return {
+                        ...prev,
+                        [puzzleId]: [...current, pieceId]
+                    };
+                }
+                return prev;
+            }
+        });
+    };
+
+    const checkAnswer = () => {
+        if (isChecking) return;
+        
+        playSound('klik');
+        setIsChecking(true);
+        
+        const currentPuzzleData = shuffledPuzzles[currentPuzzle];
+        const selected = selectedPieces[currentPuzzleData.id] || [];
+        const correct = currentPuzzleData.correctPieces;
+        
+        // Sort untuk perbandingan
+        const sortedSelected = [...selected].sort();
+        const sortedCorrect = [...correct].sort();
+        
+        const isCorrect = JSON.stringify(sortedSelected) === JSON.stringify(sortedCorrect);
+        
+        // Tampilkan potongan yang benar
+        const correctMap = {};
+        currentPuzzleData.pieces.forEach(piece => {
+            if (piece.isCorrect) {
+                correctMap[piece.id] = true;
+            }
+        });
+        setCorrectPieces(prev => ({
+            ...prev,
+            [currentPuzzleData.id]: correctMap
+        }));
+
+        if (isCorrect) {
+            playSound('benar');
+            setScore(score + 10);
+        } else {
+            playSound('salah');
+        }
+
+        setTimeout(() => {
+            if (currentPuzzle < 9) {
+                setCurrentPuzzle(currentPuzzle + 1);
+                setIsChecking(false);
+                setShowHint(false);
+            } else {
+                saveGameResult();
+                setGameStatus('end');
+            }
+        }, 2000);
     };
 
     const saveGameResult = () => {
+        const finalName = playerMode === 'named' ? playerName : 'Tamu';
         const result = {
             id: Date.now(),
-            playerName,
+            playerName: finalName,
             score,
-            levelReached: currentLevel,
-            totalLevels: puzzles.length,
-            moves,
+            correctAnswers: score / 10,
+            totalQuestions: 10,
             date: new Date().toLocaleDateString('id-ID'),
-            time: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+            time: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
+            mode: playerMode,
+            gameType: 'Puzzle Bentuk Mudah'
         };
 
         const newHistory = [result, ...gameHistory.slice(0, 4)];
         setGameHistory(newHistory);
-        localStorage.setItem('game3_history', JSON.stringify(newHistory));
+        localStorage.setItem('game_puzzle_mudah_history', JSON.stringify(newHistory));
+
+        if (score >= 70) {
+            playSound('berhasil');
+        } else {
+            playSound('gagal');
+        }
+    };
+
+    const startGameWithName = () => {
+        if (playerName.trim()) {
+            setPlayerMode('named');
+            setGameStatus('playing');
+            acakPuzzle();
+        }
+    };
+
+    const startGameAnonymous = () => {
+        setPlayerMode('anonymous');
+        setPlayerName('Tamu');
+        setGameStatus('playing');
+        acakPuzzle();
     };
 
     const restartGame = () => {
-        setCurrentLevel(1);
+        setGameStatus('playing');
+        setCurrentPuzzle(0);
         setScore(0);
-        setGamePhase('playing');
+        setSelectedPieces({});
+        setCorrectPieces({});
+        setIsChecking(false);
+        setShowHint(false);
+        acakPuzzle();
     };
 
-    const renderContent = () => {
-        switch (gamePhase) {
-            case 'start':
-                return (
-                    <div className="text-center">
-                        <div className="mb-10">
-                            <div className="inline-flex items-center justify-center w-24 h-24 rounded-2xl bg-gradient-to-r from-purple-500 to-pink-500 mb-6">
-                                <span className="text-5xl">🧩</span>
+    const resetHistory = () => {
+        setGameHistory([]);
+        localStorage.removeItem('game_puzzle_mudah_history');
+    };
+
+    const printResult = (history) => {
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(`
+            <html>
+                <head>
+                    <title>Hasil Game Puzzle Bentuk Mudah</title>
+                    <style>
+                        body {
+                            font-family: Arial, sans-serif;
+                            padding: 20px;
+                            color: #355485;
+                        }
+                        .header {
+                            text-align: center;
+                            margin-bottom: 30px;
+                            border-bottom: 3px solid #F59E0B;
+                            padding-bottom: 20px;
+                        }
+                        .result-card {
+                            border: 2px solid #90b6d5;
+                            border-radius: 15px;
+                            padding: 20px;
+                            margin: 20px 0;
+                            background: #f9fafb;
+                        }
+                        .score {
+                            font-size: 48px;
+                            font-weight: bold;
+                            color: #355485;
+                            text-align: center;
+                            margin: 20px 0;
+                        }
+                        .details {
+                            display: grid;
+                            grid-template-columns: 1fr 1fr;
+                            gap: 15px;
+                            margin-top: 20px;
+                        }
+                        .detail-item {
+                            padding: 10px;
+                            background: white;
+                            border-radius: 10px;
+                            border: 1px solid #cbdde9;
+                        }
+                        .skill-list {
+                            margin-top: 30px;
+                            padding: 15px;
+                            background: #fef3c7;
+                            border-radius: 10px;
+                            border: 1px solid #fcd34d;
+                        }
+                        .footer {
+                            text-align: center;
+                            margin-top: 40px;
+                            color: #6b7280;
+                            font-size: 12px;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h1>🧩 Hasil Game Puzzle Bentuk Mudah</h1>
+                        <h3>Untuk Siswa Kelas 1 SD</h3>
+                    </div>
+                    
+                    <div class="result-card">
+                        <h2>Pemain: ${history.playerName}</h2>
+                        <div class="score">${history.score}</div>
+                        <p style="text-align: center; font-size: 18px;">
+                            ${history.score >= 70 ? '🎉 Hebat! Kamu jago mengenal bentuk!' : '💪 Terus berlatih mengenal bentuk!'}
+                        </p>
+                        
+                        <div class="details">
+                            <div class="detail-item">
+                                <strong>Tanggal:</strong><br>
+                                ${history.date}
                             </div>
-                            <h2 className="text-3xl font-bold text-[#355485] mb-4">Puzzle Bentuk Geometri</h2>
-                            <p className="text-[#6b7280] text-lg max-w-md mx-auto">
-                                Susun potongan bentuk menjadi gambar yang utuh dan bermakna
+                            <div class="detail-item">
+                                <strong>Waktu:</strong><br>
+                                ${history.time}
+                            </div>
+                            <div class="detail-item">
+                                <strong>Puzzle Benar:</strong><br>
+                                ${history.correctAnswers} dari 10 puzzle
+                            </div>
+                            <div class="detail-item">
+                                <strong>Persentase:</strong><br>
+                                ${history.score}%
+                            </div>
+                        </div>
+                        
+                        <div class="skill-list">
+                            <h4>🧠 Kemampuan yang Dilatih:</h4>
+                            <ul>
+                                <li>Mengenal bentuk-bentuk dasar</li>
+                                <li>Mengelompokkan bentuk serupa</li>
+                                <li>Memahami karakteristik bentuk</li>
+                                <li>Observasi visual sederhana</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="footer">
+                        <p>Game Puzzle Bentuk Mudah - Materi Pembelajaran Kelas 1 SD</p>
+                        <p>Melatih kemampuan mengenal bentuk dengan cara yang menyenangkan</p>
+                    </div>
+                </body>
+            </html>
+        `);
+        printWindow.document.close();
+        printWindow.print();
+    };
+
+    const progress = ((currentPuzzle + 1) / 10) * 100;
+
+    // Render Start Screen
+    if (gameStatus === 'start') {
+        return (
+            <>
+                {/* Audio elements */}
+                <audio ref={audioBenarRef} src="/audio/sound-benar.mp3" preload="auto" />
+                <audio ref={audioSalahRef} src="/audio/sound-salah.mp3" preload="auto" />
+                <audio ref={audioBerhasilRef} src="/audio/sound-berhasil.mp3" preload="auto" />
+                <audio ref={audioGagalRef} src="/audio/sound-gagal.mp3" preload="auto" />
+                <audio ref={audioKlikRef} src="/audio/klik.mp3" preload="auto" />
+
+                <div
+                    ref={gameContainerRef}
+                    className={`min-h-screen bg-gradient-to-b from-[#cbdde9] to-[#f9fafb] ${isFullscreen ? 'flex items-center justify-center p-4' : 'p-4 md:p-8'}`}
+                >
+                    <div className={`w-full ${isFullscreen ? 'max-w-[1400px] mx-auto' : ''}`}>
+                        {/* Header */}
+                        <div className="text-center mb-8">
+                            <div className="w-32 h-32 rounded-full bg-gradient-to-br from-[#F59E0B] to-[#355485] flex items-center justify-center mx-auto mb-6 shadow-lg animate-bounce">
+                                <span className="text-6xl">🧩</span>
+                            </div>
+                            <h1 className="text-4xl font-bold text-[#355485] mb-3">
+                                Game Puzzle Bentuk Mudah
+                            </h1>
+                            <p className="text-[#6b7280] text-lg max-w-2xl mx-auto">
+                                Untuk siswa kelas 1 SD. Kenali bentuk-bentuk dasar dengan cara yang mudah dan menyenangkan!
                             </p>
                         </div>
 
-                        <div className="bg-gradient-to-br from-[#f9fafb] to-white rounded-2xl p-8 mb-10 border border-[#e5e7eb]">
-                            <h3 className="text-xl font-semibold text-[#355485] mb-6">4 Level Puzzle Menantang</h3>
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                {puzzles.map(puzzle => (
-                                    <div key={puzzle.id} className="text-center">
-                                        <div className="w-12 h-12 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-xl flex items-center justify-center text-2xl mx-auto mb-2">
-                                            {puzzle.image}
+                        {/* Main Content - Two Columns */}
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                            {/* Left Column - Game Options */}
+                            <div className="space-y-6">
+                                <div className="bg-white rounded-2xl p-8 border-2 border-[#e5e7eb] shadow-lg">
+                                    <h2 className="text-2xl font-bold text-[#355485] mb-6 flex items-center gap-3">
+                                        <span className="text-3xl">🎯</span>
+                                        Pilih Cara Bermain
+                                    </h2>
+                                    
+                                    {/* Named Player Option */}
+                                    <div className="mb-6">
+                                        <div className="flex items-center gap-3 mb-4">
+                                            <div className="w-10 h-10 rounded-full bg-[#cbdde9] flex items-center justify-center">
+                                                <span className="text-xl">👤</span>
+                                            </div>
+                                            <h3 className="text-lg font-bold text-[#355485]">Bermain dengan Nama</h3>
                                         </div>
-                                        <div className="text-sm text-[#6b7280]">Level {puzzle.id}</div>
-                                        <div className="text-xs text-[#9ca3af]">{puzzle.pieces.length} potongan</div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-
-                        <button
-                            onClick={handleStartGame}
-                            className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 
-                       text-white font-bold py-4 px-12 rounded-2xl text-lg transition-all duration-300 
-                       hover:scale-105 shadow-lg hover:shadow-xl"
-                        >
-                            🧩 Mulai Puzzle
-                        </button>
-                    </div>
-                );
-
-            case 'name':
-                return (
-                    <div className="max-w-md mx-auto">
-                        <div className="text-center mb-10">
-                            <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-r from-purple-500 to-pink-500 mb-6">
-                                <span className="text-4xl">👤</span>
-                            </div>
-                            <h2 className="text-2xl font-bold text-[#355485] mb-3">Siapa Namamu?</h2>
-                            <p className="text-[#6b7280]">Rekam prestasi puzzle-mu!</p>
-                        </div>
-
-                        <form onSubmit={handleNameSubmit} className="space-y-6">
-                            <input
-                                type="text"
-                                value={playerName}
-                                onChange={(e) => setPlayerName(e.target.value)}
-                                placeholder="Masukkan nama kamu"
-                                className="w-full px-6 py-4 text-lg rounded-2xl border-2 border-[#cbdde9] focus:border-purple-500 
-                         focus:outline-none focus:ring-2 focus:ring-purple-500/30 transition-all duration-300
-                         bg-white placeholder-[#9ca3af]"
-                                autoFocus
-                            />
-                            <div className="flex gap-4">
-                                <button
-                                    type="button"
-                                    onClick={() => setGamePhase('start')}
-                                    className="flex-1 py-3 px-6 rounded-2xl border-2 border-[#cbdde9] text-[#6b7280] 
-                           font-medium hover:border-[#9ca3af] transition-all duration-300"
-                                >
-                                    ← Kembali
-                                </button>
-                                <button
-                                    type="submit"
-                                    disabled={!playerName.trim()}
-                                    className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 
-                           hover:to-pink-600 text-white font-bold py-3 px-6 rounded-2xl 
-                           transition-all duration-300 hover:scale-105 disabled:opacity-50 
-                           disabled:cursor-not-allowed"
-                                >
-                                    Mulai Puzzle →
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                );
-
-            case 'playing':
-                return (
-                    <>
-                        {/* Game Header */}
-                        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-                            <div>
-                                <h2 className="text-2xl font-bold text-[#355485]">{currentPuzzle.title}</h2>
-                                <p className="text-[#6b7280] text-sm">Player: {playerName}</p>
-                            </div>
-
-                            <div className="flex items-center gap-6">
-                                <div className="text-center">
-                                    <div className="text-xl font-bold text-[#355485]">Level {currentLevel}</div>
-                                    <div className="text-sm text-[#9ca3af]">/{puzzles.length}</div>
-                                </div>
-                                <div className="text-center">
-                                    <div className="text-xl font-bold text-purple-500">{score}</div>
-                                    <div className="text-sm text-[#9ca3af]">Skor</div>
-                                </div>
-                                <div className="text-center">
-                                    <div className="text-xl font-bold text-[#355485]">{moves}</div>
-                                    <div className="text-sm text-[#9ca3af]">Langkah</div>
-                                </div>
-                                <div className={`text-center ${timer < 15 ? 'animate-pulse' : ''}`}>
-                                    <div className={`text-xl font-bold ${timer < 15 ? 'text-red-500' : 'text-[#355485]'}`}>
-                                        {timer}s
-                                    </div>
-                                    <div className="text-sm text-[#9ca3af]">Waktu</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Target Image */}
-                        <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl p-6 mb-8 border border-purple-100">
-                            <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-                                <div className="text-center">
-                                    <div className="text-6xl mb-3">{currentPuzzle.image}</div>
-                                    <div className="text-sm text-purple-600 font-medium">Target Gambar</div>
-                                </div>
-                                <div className="flex-1">
-                                    <h3 className="text-lg font-bold text-[#355485] mb-2">{currentPuzzle.description}</h3>
-                                    <p className="text-[#6b7280]">Susun potongan di bawah menjadi gambar seperti ini!</p>
-                                    {!hintUsed && (
+                                        
+                                        <div className="mb-4">
+                                            <input
+                                                type="text"
+                                                value={playerName}
+                                                onChange={(e) => setPlayerName(e.target.value)}
+                                                placeholder="Masukkan nama kamu"
+                                                className="w-full px-4 py-3 rounded-xl border-2 border-[#cbdde9] focus:border-[#F59E0B] focus:outline-none bg-white text-[#355485] text-lg transition-all"
+                                            />
+                                        </div>
+                                        
                                         <button
-                                            onClick={handleHint}
-                                            className="mt-3 px-4 py-2 bg-gradient-to-r from-yellow-500 to-orange-500 text-white 
-                               rounded-lg text-sm font-medium hover:from-yellow-600 hover:to-orange-600 
-                               transition-all duration-300"
+                                            onClick={startGameWithName}
+                                            disabled={!playerName.trim()}
+                                            className="w-full bg-gradient-to-r from-[#F59E0B] to-[#355485] hover:from-[#D97706] hover:to-[#2a436c] disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-4 px-8 rounded-xl transition-all duration-300 transform hover:scale-[1.02] shadow-lg"
                                         >
-                                            💡 Minta Petunjuk (-20 poin)
+                                            <span className="flex items-center justify-center gap-3 text-lg">
+                                                <span className="text-xl">🚀</span>
+                                                Mulai dengan Nama
+                                            </span>
+                                        </button>
+                                    </div>
+                                    
+                                    {/* Divider */}
+                                    <div className="flex items-center my-6">
+                                        <div className="flex-1 h-px bg-[#e5e7eb]"></div>
+                                        <span className="px-4 text-[#9ca3af]">ATAU</span>
+                                        <div className="flex-1 h-px bg-[#e5e7eb]"></div>
+                                    </div>
+                                    
+                                    {/* Anonymous Option */}
+                                    <div>
+                                        <button
+                                            onClick={startGameAnonymous}
+                                            className="w-full border-2 border-[#F59E0B] hover:border-[#355485] text-[#F59E0B] hover:text-[#355485] font-bold py-4 px-8 rounded-xl transition-all duration-300 transform hover:scale-[1.02]"
+                                        >
+                                            <span className="flex items-center justify-center gap-3 text-lg">
+                                                <span className="text-xl">🎪</span>
+                                                Main sebagai Tamu
+                                            </span>
+                                        </button>
+                                        <p className="text-sm text-[#9ca3af] text-center mt-3">
+                                            Hasil tidak akan disimpan dengan nama
+                                        </p>
+                                    </div>
+                                </div>
+                                
+                                {/* Fullscreen Button */}
+                                <button
+                                    onClick={toggleFullscreen}
+                                    className="w-full border-2 border-[#e5e7eb] hover:border-[#9ca3af] hover:bg-white text-[#6b7280] py-4 px-8 rounded-xl transition-all duration-300 transform hover:scale-[1.02]"
+                                >
+                                    <span className="flex items-center justify-center gap-3">
+                                        <span className="text-2xl">{isFullscreen ? '📱' : '🖥️'}</span>
+                                        <span className="text-lg">{isFullscreen ? 'Keluar Fullscreen' : 'Mode Layar Penuh'}</span>
+                                    </span>
+                                </button>
+                            </div>
+
+                            {/* Right Column - History */}
+                            <div className="bg-white rounded-2xl p-8 border-2 border-[#e5e7eb] shadow-lg">
+                                <div className="flex justify-between items-center mb-6">
+                                    <h3 className="text-2xl font-bold text-[#355485] flex items-center gap-3">
+                                        <span className="text-3xl">🏆</span>
+                                        <span>Riwayat Permainan</span>
+                                    </h3>
+                                    {gameHistory.length > 0 && (
+                                        <button
+                                            onClick={resetHistory}
+                                            className="text-sm text-[#6b7280] hover:text-[#F59E0B] hover:underline px-3 py-1 rounded-lg hover:bg-[#f9fafb] transition-colors"
+                                        >
+                                            Hapus Semua
                                         </button>
                                     )}
                                 </div>
+
+                                {gameHistory.length > 0 ? (
+                                    <div className="space-y-4">
+                                        {gameHistory.slice(0, 5).map((history, index) => (
+                                            <div
+                                                key={history.id}
+                                                className={`p-4 rounded-xl border transition-all hover:shadow-md ${index === 0 ? 'border-[#F59E0B] bg-gradient-to-r from-[#fef3c7] to-white' : 'border-[#e5e7eb] bg-[#f9fafb]'}`}
+                                            >
+                                                <div className="flex justify-between items-start">
+                                                    <div className="flex-1">
+                                                        <div className="flex items-center gap-3 mb-2">
+                                                            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${index === 0 ? 'bg-gradient-to-br from-[#F59E0B] to-[#355485] text-white' : 'bg-[#cbdde9] text-[#355485]'}`}>
+                                                                <span className="font-bold">{index + 1}</span>
+                                                            </div>
+                                                            <div>
+                                                                <div className="font-bold text-[#355485]">{history.playerName}</div>
+                                                                <div className="text-sm text-[#9ca3af]">
+                                                                    {history.date} • {history.time}
+                                                                </div>
+                                                            </div>
+                                                            {index === 0 && (
+                                                                <span className="text-xs bg-[#F59E0B] text-white px-3 py-1 rounded-full animate-pulse">
+                                                                    TERBARU
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                    <div className="text-right ml-4">
+                                                        <div className={`text-2xl font-bold mb-1 ${history.score >= 70 ? 'text-green-600' : 'text-red-600'}`}>
+                                                            {history.score}
+                                                        </div>
+                                                        <div className="text-sm text-[#9ca3af]">
+                                                            {history.correctAnswers}/10 puzzle
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div className="mt-4 flex justify-end">
+                                                    <button
+                                                        onClick={() => printResult(history)}
+                                                        className="text-sm bg-[#cbdde9] hover:bg-[#90b6d5] text-[#355485] font-medium px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
+                                                    >
+                                                        <span>🖨️</span>
+                                                        Print Hasil
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="text-center py-12">
+                                        <div className="text-5xl text-[#cbdde9] mb-4">📝</div>
+                                        <p className="text-[#6b7280] font-medium text-lg">Belum ada riwayat permainan</p>
+                                        <p className="text-sm text-[#9ca3af] mt-2">Mulai permainan untuk melihat riwayat di sini</p>
+                                    </div>
+                                )}
                             </div>
                         </div>
 
-                        {/* Selected Piece */}
-                        {selectedPiece && (
-                            <div className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl p-4 mb-6 text-center">
-                                <p className="text-[#355485] font-medium">
-                                    <span className="text-2xl mr-2">{selectedPiece.shape}</span>
-                                    Potongan terpilih. Klik kotak untuk menempatkan!
-                                </p>
+                        {/* Game Description */}
+                        <div className="bg-gradient-to-r from-[#355485] to-[#F59E0B] rounded-2xl p-8 text-white shadow-lg">
+                            <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+                                <div className="text-center md:text-left">
+                                    <h3 className="text-2xl font-bold mb-3">🧩 Cara Bermain Mudah</h3>
+                                    <p className="opacity-90 max-w-2xl">
+                                        1. Baca petunjuk puzzle<br/>
+                                        2. Pilih <strong>2 potongan</strong> yang benar<br/>
+                                        3. Klik "Periksa Jawaban"<br/>
+                                        4. Lanjut ke puzzle berikutnya!
+                                    </p>
+                                </div>
+                                <div className="flex items-center gap-4">
+                                    <div className="text-center">
+                                        <div className="text-3xl">🔺</div>
+                                        <div className="text-sm">Pilih 2</div>
+                                    </div>
+                                    <div className="text-center">
+                                        <div className="text-3xl">✅</div>
+                                        <div className="text-sm">Cek Jawaban</div>
+                                    </div>
+                                    <div className="text-center">
+                                        <div className="text-3xl">🎯</div>
+                                        <div className="text-sm">Mudah</div>
+                                    </div>
+                                </div>
                             </div>
-                        )}
+                        </div>
+                    </div>
+                </div>
+            </>
+        );
+    }
 
-                        {/* Game Area */}
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-                            {/* Available Pieces */}
-                            <div>
-                                <h3 className="text-lg font-semibold text-[#355485] mb-4">Potongan Puzzle:</h3>
-                                <div className="bg-white rounded-2xl p-6 border border-[#e5e7eb] min-h-[200px]">
-                                    {puzzlePieces.length > 0 ? (
-                                        <div className="flex flex-wrap gap-4 justify-center">
-                                            {puzzlePieces.map(piece => (
-                                                <button
-                                                    key={piece.id}
-                                                    onClick={() => handlePieceSelect(piece)}
-                                                    className={`text-4xl p-4 rounded-xl border-2 transition-all duration-300
-                                   ${selectedPiece?.id === piece.id
-                                                            ? 'border-purple-500 bg-purple-50 transform scale-110'
-                                                            : 'border-[#cbdde9] bg-white hover:border-purple-400 hover:shadow-lg hover:scale-105'
-                                                        }`}
-                                                >
-                                                    {piece.shape}
-                                                </button>
-                                            ))}
+    // Render Game Screen
+    if (gameStatus === 'playing' && shuffledPuzzles.length > 0) {
+        const puzzle = shuffledPuzzles[currentPuzzle];
+        const selected = selectedPieces[puzzle.id] || [];
+        const correct = correctPieces[puzzle.id] || {};
+
+        return (
+            <>
+                <audio ref={audioBenarRef} src="/audio/sound-benar.mp3" preload="auto" />
+                <audio ref={audioSalahRef} src="/audio/sound-salah.mp3" preload="auto" />
+                <audio ref={audioBerhasilRef} src="/audio/sound-berhasil.mp3" preload="auto" />
+                <audio ref={audioGagalRef} src="/audio/sound-gagal.mp3" preload="auto" />
+                <audio ref={audioKlikRef} src="/audio/klik.mp3" preload="auto" />
+
+                <div
+                    ref={gameContainerRef}
+                    className={`min-h-screen bg-gradient-to-b from-[#cbdde9] to-[#f9fafb] ${isFullscreen ? 'flex items-center justify-center p-4' : 'p-4 md:p-8'}`}
+                >
+                    <div className={`w-full ${isFullscreen ? 'max-w-[1200px] mx-auto' : ''}`}>
+                        {/* Header */}
+                        <div className="mb-8">
+                            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                                <div>
+                                    <h2 className="text-2xl font-bold text-[#355485] flex items-center gap-3">
+                                        <span className="text-3xl">🧩</span>
+                                        Puzzle Bentuk Mudah
+                                    </h2>
+                                    <p className="text-[#6b7280]">
+                                        Pemain: <span className="font-semibold text-[#F59E0B]">{playerName}</span>
+                                    </p>
+                                </div>
+
+                                <div className="flex items-center gap-4">
+                                    <div className="flex items-center gap-6 bg-white px-6 py-3 rounded-xl border-2 border-[#e5e7eb] shadow-sm">
+                                        <div className="text-center">
+                                            <div className="text-2xl font-bold text-[#F59E0B]">{score}</div>
+                                            <div className="text-xs text-[#9ca3af]">Poin</div>
                                         </div>
-                                    ) : (
-                                        <div className="text-center py-8 text-[#9ca3af]">
-                                            <div className="text-4xl mb-3">✅</div>
-                                            <p>Semua potongan sudah ditempatkan!</p>
+                                        <div className="w-px h-8 bg-[#e5e7eb]" />
+                                        <div className="text-center">
+                                            <div className="text-2xl font-bold text-[#F59E0B]">{currentPuzzle + 1}/10</div>
+                                            <div className="text-xs text-[#9ca3af]">Puzzle</div>
                                         </div>
-                                    )}
+                                        <div className="w-px h-8 bg-[#e5e7eb]" />
+                                        <div className="text-center">
+                                            <div className="text-2xl font-bold text-[#F59E0B]">{selected.length}/2</div>
+                                            <div className="text-xs text-[#9ca3af]">Dipilih</div>
+                                        </div>
+                                    </div>
+
+                                    <button
+                                        onClick={toggleFullscreen}
+                                        className="p-3 rounded-xl border-2 border-[#e5e7eb] hover:border-[#9ca3af] hover:bg-white text-[#6b7280] hover:text-[#355485] transition-all duration-300"
+                                        title={isFullscreen ? "Keluar Fullscreen" : "Mode Fullscreen"}
+                                    >
+                                        <span className="text-2xl">{isFullscreen ? '📱' : '🖥️'}</span>
+                                    </button>
                                 </div>
                             </div>
 
-                            {/* Puzzle Grid */}
-                            <div>
-                                <h3 className="text-lg font-semibold text-[#355485] mb-4">Area Puzzle:</h3>
-                                <div className="bg-gradient-to-br from-[#f9fafb] to-white rounded-2xl p-6 border border-[#e5e7eb]">
-                                    <div className={`grid ${currentLevel <= 2 ? 'grid-cols-2' : 'grid-cols-4'} gap-4`}>
-                                        {puzzleGrid.map((piece, index) => (
-                                            <div
-                                                key={index}
-                                                id={`grid-${index}`}
-                                                onClick={() => {
-                                                    if (piece) {
-                                                        handleGridRemove(index);
-                                                    } else if (selectedPiece) {
-                                                        handleGridClick(index);
-                                                    }
-                                                }}
-                                                className={`aspect-square rounded-xl border-2 flex items-center justify-center text-3xl
-                                 transition-all duration-300 cursor-pointer
-                                 ${piece
-                                                        ? 'border-purple-500 bg-purple-50 hover:bg-purple-100'
-                                                        : 'border-dashed border-[#cbdde9] hover:border-purple-300 hover:bg-purple-50'
-                                                    }
-                                 ${selectedPiece && !piece ? 'hover:scale-105' : ''}`}
-                                            >
-                                                {piece ? (
-                                                    <div className="relative">
-                                                        <span>{piece.shape}</span>
-                                                        {index === piece.correctPosition && (
-                                                            <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full"></div>
-                                                        )}
+                            {/* Progress Numbers */}
+                            <div className="mb-6">
+                                <div className="flex justify-between mb-3">
+                                    <span className="text-sm font-medium text-[#355485]">Progress Penyelesaian</span>
+                                    <span className="text-sm font-medium text-[#F59E0B]">
+                                        Puzzle {currentPuzzle + 1} dari 10
+                                    </span>
+                                </div>
+                                <div className="flex justify-between items-center gap-2">
+                                    {Array.from({ length: 10 }).map((_, index) => (
+                                        <div
+                                            key={index}
+                                            className={`flex-1 h-12 rounded-xl flex items-center justify-center transition-all duration-300 ${index === currentPuzzle
+                                                    ? 'bg-gradient-to-br from-[#F59E0B] to-[#355485] text-white transform scale-105 shadow-lg'
+                                                    : index < currentPuzzle
+                                                        ? 'bg-[#90b6d5] text-white'
+                                                        : 'bg-white border-2 border-[#cbdde9] text-[#9ca3af]'
+                                                }`}
+                                        >
+                                            <span className="font-bold">{index + 1}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Main Content */}
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                            {/* Left Column - Puzzle Info & Pieces */}
+                            <div className="bg-white rounded-2xl p-8 border-2 border-[#e5e7eb] shadow-lg">
+                                <div className="mb-8">
+                                    <div className="flex items-center gap-4 mb-6">
+                                        <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-[#F59E0B] to-[#355485] flex items-center justify-center">
+                                            <span className="text-4xl">{puzzle.emoji}</span>
+                                        </div>
+                                        <div>
+                                            <div className="text-sm text-[#F59E0B] font-bold mb-1">PUZZLE #{puzzle.id}</div>
+                                            <h3 className="text-2xl font-bold text-[#355485]">{puzzle.title}</h3>
+                                            <p className="text-[#6b7280] mt-1">{puzzle.description}</p>
+                                        </div>
+                                    </div>
+
+                                    {/* Instructions */}
+                                    <div className="mb-6 p-4 bg-gradient-to-r from-[#fef3c7] to-white border-2 border-[#fcd34d] rounded-xl">
+                                        <div className="flex items-center gap-3 mb-2">
+                                            <span className="text-2xl">🎯</span>
+                                            <h4 className="font-bold text-[#355485]">Petunjuk</h4>
+                                        </div>
+                                        <p className="text-[#6b7280]">
+                                            <strong>Pilih 2 potongan yang benar</strong> sesuai dengan deskripsi di atas!
+                                        </p>
+                                    </div>
+
+                                    {/* Puzzle Pieces */}
+                                    <div className="mb-8">
+                                        <h4 className="font-bold text-[#355485] mb-4 text-center">
+                                            Pilih 2 Potongan yang Benar
+                                        </h4>
+                                        
+                                        <div className="grid grid-cols-2 gap-4">
+                                            {puzzle.pieces.map((piece) => {
+                                                const isSelected = selected.includes(piece.id);
+                                                const isCorrect = correct[piece.id];
+                                                const showAsCorrect = isChecking && piece.isCorrect;
+                                                
+                                                return (
+                                                    <button
+                                                        key={piece.id}
+                                                        onClick={() => togglePieceSelection(puzzle.id, piece.id)}
+                                                        disabled={isChecking}
+                                                        className={`p-6 rounded-xl border-2 transition-all duration-300 transform hover:scale-[1.02]
+                                                            ${isSelected
+                                                                ? 'bg-gradient-to-br from-[#F59E0B] to-[#355485] border-[#F59E0B] text-white shadow-lg'
+                                                                : showAsCorrect
+                                                                    ? 'bg-gradient-to-r from-green-100 to-emerald-100 border-4 border-green-400'
+                                                                    : 'bg-gradient-to-r from-[#f9fafb] to-white border-2 border-[#e5e7eb] hover:border-[#cbdde9] hover:shadow-md text-[#355485]'
+                                                            }
+                                                            ${isChecking && !isSelected && !showAsCorrect && !piece.isCorrect
+                                                                ? 'opacity-50'
+                                                                : ''
+                                                            }
+                                                        `}
+                                                    >
+                                                        <div className="flex flex-col items-center gap-3">
+                                                            <div className={`text-5xl ${isSelected ? 'animate-bounce' : ''}`}>
+                                                                {piece.emoji}
+                                                            </div>
+                                                            <div className="text-center">
+                                                                <div className="font-bold text-lg">{piece.label}</div>
+                                                                <div className="text-sm text-[#6b7280] mt-1">
+                                                                    Potongan {piece.id}
+                                                                </div>
+                                                            </div>
+                                                            {isSelected && (
+                                                                <div className="text-sm bg-white/20 px-3 py-1 rounded-full">
+                                                                    ✅ Terpilih
+                                                                </div>
+                                                            )}
+                                                            {showAsCorrect && !isSelected && (
+                                                                <div className="text-sm bg-green-500 text-white px-3 py-1 rounded-full animate-pulse">
+                                                                    ✓ Benar
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Controls */}
+                                <div className="flex gap-4">
+                                    <button
+                                        onClick={() => setShowHint(!showHint)}
+                                        className="flex-1 py-3 bg-gradient-to-r from-[#cbdde9] to-[#90b6d5] hover:from-[#90b6d5] hover:to-[#F59E0B] text-[#355485] font-bold rounded-xl transition-all duration-300 transform hover:scale-[1.02]"
+                                    >
+                                        <span className="flex items-center justify-center gap-2">
+                                            <span className="text-xl">💡</span>
+                                            {showHint ? 'Sembunyikan Petunjuk' : 'Tampilkan Petunjuk'}
+                                        </span>
+                                    </button>
+                                    
+                                    <button
+                                        onClick={checkAnswer}
+                                        disabled={selected.length !== 2 || isChecking}
+                                        className="flex-1 bg-gradient-to-r from-[#F59E0B] to-[#355485] hover:from-[#D97706] hover:to-[#2a436c] disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-all duration-300 transform hover:scale-[1.02] shadow-lg"
+                                    >
+                                        <span className="flex items-center justify-center gap-2">
+                                            <span className="text-xl">🔍</span>
+                                            Periksa Jawaban
+                                        </span>
+                                    </button>
+                                </div>
+
+                                {/* Hint Display */}
+                                {showHint && (
+                                    <div className="mt-4 p-4 bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-200 rounded-xl animate-fade-in">
+                                        <div className="flex items-start gap-3">
+                                            <span className="text-2xl">💡</span>
+                                            <div>
+                                                <div className="font-bold text-[#355485] mb-1">Petunjuk:</div>
+                                                <p className="text-[#6b7280]">{puzzle.hint}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Selected Pieces Info */}
+                                {selected.length > 0 && !isChecking && (
+                                    <div className="mt-4 p-4 bg-gradient-to-r from-[#f0f7ff] to-white border-2 border-[#cbdde9] rounded-xl">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-xl">✅</span>
+                                                <span className="font-medium text-[#355485]">
+                                                    Dipilih: {selected.length}/2
+                                                </span>
+                                            </div>
+                                            <div className="text-sm text-[#9ca3af]">
+                                                {selected.map(id => `Potongan ${id}`).join(', ')}
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Right Column - Feedback & Next Steps */}
+                            <div className="bg-white rounded-2xl p-8 border-2 border-[#e5e7eb] shadow-lg">
+                                <div className="sticky top-8">
+                                    {/* How to Play */}
+                                    <div className="mb-8">
+                                        <h3 className="text-xl font-bold text-[#355485] mb-6 flex items-center gap-3">
+                                            <span className="text-2xl">📝</span>
+                                            <span>Cara Bermain</span>
+                                        </h3>
+
+                                        <div className="space-y-4">
+                                            <div className="p-4 bg-gradient-to-r from-[#fef3c7] to-white border-2 border-[#fcd34d] rounded-xl">
+                                                <div className="flex items-start gap-3">
+                                                    <div className="w-8 h-8 rounded-full bg-[#F59E0B] text-white flex items-center justify-center font-bold">
+                                                        1
                                                     </div>
-                                                ) : (
-                                                    <span className="text-[#cbdde9] text-sm">Klik</span>
-                                                )}
+                                                    <div>
+                                                        <div className="font-bold text-[#355485] mb-1">Baca Petunjuk</div>
+                                                        <p className="text-sm text-[#6b7280]">
+                                                            Perhatikan deskripsi puzzle dengan teliti
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="p-4 bg-gradient-to-r from-[#fef3c7] to-white border-2 border-[#fcd34d] rounded-xl">
+                                                <div className="flex items-start gap-3">
+                                                    <div className="w-8 h-8 rounded-full bg-[#F59E0B] text-white flex items-center justify-center font-bold">
+                                                        2
+                                                    </div>
+                                                    <div>
+                                                        <div className="font-bold text-[#355485] mb-1">Pilih 2 Potongan</div>
+                                                        <p className="text-sm text-[#6b7280]">
+                                                            Klik 2 potongan yang menurutmu benar
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="p-4 bg-gradient-to-r from-[#fef3c7] to-white border-2 border-[#fcd34d] rounded-xl">
+                                                <div className="flex items-start gap-3">
+                                                    <div className="w-8 h-8 rounded-full bg-[#F59E0B] text-white flex items-center justify-center font-bold">
+                                                        3
+                                                    </div>
+                                                    <div>
+                                                        <div className="font-bold text-[#355485] mb-1">Periksa Jawaban</div>
+                                                        <p className="text-sm text-[#6b7280]">
+                                                            Klik tombol untuk memeriksa jawabanmu
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Feedback Area */}
+                                    <div className="mb-8">
+                                        <h4 className="font-bold text-[#355485] mb-4 flex items-center gap-2">
+                                            <span className="text-xl">💬</span>
+                                            <span>Hasil Pemeriksaan</span>
+                                        </h4>
+                                        
+                                        {isChecking ? (
+                                            <div className={`p-6 rounded-xl text-center animate-fade-in shadow-lg
+                                                ${JSON.stringify([...selected].sort()) === JSON.stringify([...puzzle.correctPieces].sort())
+                                                    ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-300'
+                                                    : 'bg-gradient-to-r from-red-50 to-pink-50 border-2 border-red-300'
+                                                }`}
+                                            >
+                                                <div className="flex flex-col items-center gap-3">
+                                                    <span className="text-4xl">
+                                                        {JSON.stringify([...selected].sort()) === JSON.stringify([...puzzle.correctPieces].sort()) 
+                                                            ? '🎉' 
+                                                            : '💪'
+                                                        }
+                                                    </span>
+                                                    <div>
+                                                        <div className={`text-xl font-bold mb-1 ${JSON.stringify([...selected].sort()) === JSON.stringify([...puzzle.correctPieces].sort()) 
+                                                            ? 'text-green-700' 
+                                                            : 'text-red-700'
+                                                        }`}>
+                                                            {JSON.stringify([...selected].sort()) === JSON.stringify([...puzzle.correctPieces].sort()) 
+                                                                ? 'BENAR!' 
+                                                                : 'SALAH!'
+                                                            }
+                                                        </div>
+                                                        <p className="text-[#6b7280]">
+                                                            {JSON.stringify([...selected].sort()) === JSON.stringify([...puzzle.correctPieces].sort()) 
+                                                                ? 'Kamu mendapat 10 poin!' 
+                                                                : 'Coba lagi di puzzle berikutnya!'
+                                                            }
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div className="mt-4 text-sm text-[#9ca3af]">
+                                                    Puzzle berikutnya akan dimulai otomatis...
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="p-6 bg-gradient-to-r from-[#f9fafb] to-white border-2 border-[#e5e7eb] rounded-xl text-center">
+                                                <div className="text-3xl mb-3">🤔</div>
+                                                <p className="text-[#6b7280]">
+                                                    Pilih 2 potongan terlebih dahulu, lalu periksa jawabanmu!
+                                                </p>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Puzzle Progress */}
+                                    <div className="p-4 bg-gradient-to-r from-[#f0f7ff] to-white border-2 border-[#cbdde9] rounded-xl">
+                                        <h4 className="font-bold text-[#355485] mb-3 flex items-center gap-2">
+                                            <span className="text-xl">📊</span>
+                                            <span>Progress Puzzle</span>
+                                        </h4>
+                                        <div className="space-y-3">
+                                            <div>
+                                                <div className="flex justify-between text-sm text-[#6b7280] mb-1">
+                                                    <span>Pilihan terpilih</span>
+                                                    <span>{selected.length} / 2</span>
+                                                </div>
+                                                <div className="w-full h-3 bg-[#e5e7eb] rounded-full overflow-hidden">
+                                                    <div
+                                                        className="h-full bg-gradient-to-r from-[#F59E0B] to-[#90b6d5] rounded-full transition-all duration-500"
+                                                        style={{ width: `${(selected.length / 2) * 100}%` }}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="text-center">
+                                                <div className="text-sm text-[#9ca3af]">
+                                                    {selected.length === 0 ? 'Belum ada pilihan' :
+                                                     selected.length === 1 ? 'Pilih 1 lagi!' :
+                                                     'Sudah siap untuk diperiksa!'}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </>
+        );
+    }
+
+    // Render End Screen
+    if (gameStatus === 'end') {
+        const nilai = score;
+        const pesan = nilai === 100 ? 'LUAR BIASA!' : nilai >= 70 ? 'HEBAT!' : 'AYO LATIHAN LAGI!';
+
+        return (
+            <>
+                <audio ref={audioBenarRef} src="/audio/sound-benar.mp3" preload="auto" />
+                <audio ref={audioSalahRef} src="/audio/sound-salah.mp3" preload="auto" />
+                <audio ref={audioBerhasilRef} src="/audio/sound-berhasil.mp3" preload="auto" />
+                <audio ref={audioGagalRef} src="/audio/sound-gagal.mp3" preload="auto" />
+                <audio ref={audioKlikRef} src="/audio/klik.mp3" preload="auto" />
+
+                <div
+                    ref={gameContainerRef}
+                    className={`min-h-screen bg-gradient-to-b from-[#cbdde9] to-[#f9fafb] ${isFullscreen ? 'flex items-center justify-center p-4' : 'p-4 md:p-8'}`}
+                >
+                    <div className={`w-full ${isFullscreen ? 'max-w-[1200px] mx-auto' : ''}`}>
+                        <div className="text-center mb-8">
+                            <div className={`w-32 h-32 rounded-full flex items-center justify-center mx-auto mb-6 shadow-2xl animate-bounce
+                                ${nilai === 100 ? 'bg-gradient-to-br from-yellow-300 to-orange-400' :
+                                    nilai >= 70 ? 'bg-gradient-to-br from-green-300 to-emerald-400' :
+                                        'bg-gradient-to-br from-blue-300 to-indigo-400'}`}
+                            >
+                                <span className="text-6xl">
+                                    {nilai === 100 ? '🏆' : nilai >= 70 ? '🎉' : '🧩'}
+                                </span>
+                            </div>
+                            <h1 className="text-4xl font-bold text-[#355485] mb-3">{pesan}</h1>
+                            <p className="text-[#6b7280] text-lg mb-1">Selesai! Inilah Hasil Permainanmu</p>
+                            <p className="text-[#F59E0B] font-bold text-xl">Pemain: {playerName}</p>
+                        </div>
+
+                        {/* Two Column Layout */}
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                            {/* Left Column - Score Summary */}
+                            <div className="bg-white rounded-2xl p-8 border-2 border-[#e5e7eb] shadow-lg">
+                                <h3 className="font-bold text-[#355485] mb-8 flex items-center gap-3">
+                                    <span className="text-3xl">📋</span>
+                                    <span className="text-2xl">Hasil Permainan</span>
+                                </h3>
+
+                                {/* Score Circle */}
+                                <div className="relative w-48 h-48 mx-auto mb-8">
+                                    <div className="absolute inset-0 flex items-center justify-center">
+                                        <div className={`text-5xl font-bold ${nilai >= 70 ? 'text-green-600' : 'text-red-600'}`}>
+                                            {nilai}
+                                        </div>
+                                    </div>
+                                    <svg className="w-full h-full transform -rotate-90">
+                                        <circle
+                                            cx="96"
+                                            cy="96"
+                                            r="88"
+                                            stroke="#e5e7eb"
+                                            strokeWidth="16"
+                                            fill="none"
+                                        />
+                                        <circle
+                                            cx="96"
+                                            cy="96"
+                                            r="88"
+                                            stroke={nilai >= 70 ? "#F59E0B" : "#355485"}
+                                            strokeWidth="16"
+                                            fill="none"
+                                            strokeDasharray={`${nilai * 5.5} 550`}
+                                            strokeLinecap="round"
+                                        />
+                                    </svg>
+                                </div>
+
+                                <div className="space-y-4">
+                                    {[
+                                        { label: 'Puzzle Benar', value: `${score / 10} dari 10` },
+                                        { label: 'Total Poin', value: score },
+                                        { label: 'Persentase', value: `${nilai}%` },
+                                        { label: 'Status', value: nilai >= 70 ? '✅ BERHASIL' : '💪 PERLU LATIHAN', color: nilai >= 70 ? 'text-green-600' : 'text-red-600' }
+                                    ].map((item, index) => (
+                                        <div key={index} className="flex justify-between items-center p-4 bg-gradient-to-r from-[#f9fafb] to-white rounded-xl border-2 border-[#e5e7eb]">
+                                            <span className="text-[#6b7280] font-medium">{item.label}</span>
+                                            <span className={`font-bold text-lg ${item.color || 'text-[#355485]'}`}>{item.value}</span>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                {/* Skills Developed */}
+                                <div className="mt-8 p-6 rounded-xl bg-gradient-to-r from-[#fef3c7] to-white border-2 border-[#F59E0B]">
+                                    <h4 className="font-bold text-[#355485] mb-3 flex items-center gap-2">
+                                        <span className="text-xl">🧠</span>
+                                        Kemampuan yang Dilatih
+                                    </h4>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        {['Mengenal Bentuk', 'Pengamatan', 'Klasifikasi', 'Pemilihan'].map((skill, idx) => (
+                                            <div key={idx} className="px-3 py-2 bg-[#cbdde9] rounded-lg text-center text-sm font-medium text-[#355485]">
+                                                {skill}
                                             </div>
                                         ))}
                                     </div>
                                 </div>
                             </div>
-                        </div>
 
-                        {/* Progress */}
-                        <div className="mt-8">
-                            <div className="flex justify-between text-sm text-[#6b7280] mb-2">
-                                <span>Progress: {puzzleGrid.filter(cell => cell !== null).length}/{currentPuzzle.pieces.length} potongan</span>
-                                <span>{Math.round((puzzleGrid.filter(cell => cell !== null).length / currentPuzzle.pieces.length) * 100)}%</span>
-                            </div>
-                            <div className="w-full bg-[#e5e7eb] rounded-full h-3">
-                                <div
-                                    className="bg-gradient-to-r from-purple-500 to-pink-500 h-3 rounded-full transition-all duration-500"
-                                    style={{ width: `${(puzzleGrid.filter(cell => cell !== null).length / currentPuzzle.pieces.length) * 100}%` }}
-                                ></div>
-                            </div>
-                        </div>
-
-                        {/* Puzzle Completed Overlay */}
-                        {puzzleCompleted && (
-                            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 animate-fade-in">
-                                <div className="bg-white rounded-2xl p-8 max-w-md mx-4 text-center animate-scale-in">
-                                    <div className="text-6xl mb-4">🎊</div>
-                                    <h3 className="text-2xl font-bold text-[#355485] mb-3">Level Selesai!</h3>
-                                    <p className="text-[#6b7280] mb-6">Selamat! Puzzle berhasil disusun!</p>
-                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto"></div>
+                            {/* Right Column - History */}
+                            <div className="bg-white rounded-2xl p-8 border-2 border-[#e5e7eb] shadow-lg">
+                                <div className="flex justify-between items-center mb-6">
+                                    <h3 className="font-bold text-[#355485] flex items-center gap-3">
+                                        <span className="text-3xl">📊</span>
+                                        <span className="text-2xl">Riwayat Permainan</span>
+                                    </h3>
+                                    <button
+                                        onClick={() => printResult(gameHistory[0])}
+                                        className="bg-gradient-to-r from-[#F59E0B] to-[#355485] hover:from-[#D97706] hover:to-[#2a436c] text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 flex items-center gap-2"
+                                    >
+                                        <span>🖨️</span>
+                                        Print Hasil Ini
+                                    </button>
                                 </div>
-                            </div>
-                        )}
-                    </>
-                );
-
-            case 'result':
-                const progressPercentage = Math.round((currentLevel / puzzles.length) * 100);
-                return (
-                    <>
-                        {/* Result Header */}
-                        <div className="text-center mb-10">
-                            <div className={`inline-flex items-center justify-center w-24 h-24 rounded-2xl mb-6
-                ${score >= 2000 ? 'bg-gradient-to-r from-yellow-500 to-orange-500' :
-                                    score >= 1500 ? 'bg-gradient-to-r from-purple-500 to-pink-500' :
-                                        'bg-gradient-to-r from-purple-400 to-pink-400'}`}
-                            >
-                                <span className="text-5xl">
-                                    {score >= 2000 ? '🏆' : score >= 1500 ? '🎉' : '🧩'}
-                                </span>
-                            </div>
-                            <h2 className="text-3xl font-bold text-[#355485] mb-3">
-                                {score >= 2000 ? 'Puzzle Master!' : score >= 1500 ? 'Hebat!' : 'Bagus!'}
-                            </h2>
-                            <p className="text-[#6b7280]">Hasil puzzle {playerName}</p>
-                        </div>
-
-                        {/* Score Card */}
-                        <div className="bg-gradient-to-br from-[#f9fafb] to-white rounded-2xl p-8 mb-10 border border-[#e5e7eb] shadow-lg">
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                                <div className="text-center">
-                                    <div className="text-4xl font-bold text-purple-500 mb-2">{score}</div>
-                                    <div className="text-sm text-[#6b7280]">Total Skor</div>
-                                </div>
-                                <div className="text-center">
-                                    <div className="text-4xl font-bold text-[#355485] mb-2">{currentLevel}</div>
-                                    <div className="text-sm text-[#6b7280]">Level Tercapai</div>
-                                </div>
-                                <div className="text-center">
-                                    <div className="text-4xl font-bold text-[#355485] mb-2">{moves}</div>
-                                    <div className="text-sm text-[#6b7280]">Total Langkah</div>
-                                </div>
-                                <div className="text-center">
-                                    <div className="text-4xl font-bold text-[#355485] mb-2">{progressPercentage}%</div>
-                                    <div className="text-sm text-[#6b7280]">Progress Game</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Level Progress */}
-                        <div className="mb-12">
-                            <h3 className="text-lg font-bold text-[#355485] mb-4">Progress Level Puzzle:</h3>
-                            <div className="space-y-4">
-                                {puzzles.map(puzzle => (
-                                    <div key={puzzle.id} className="flex items-center">
-                                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center mr-4
-                      ${currentLevel >= puzzle.id
-                                                ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
-                                                : 'bg-[#e5e7eb] text-[#9ca3af]'
-                                            }`}
-                                        >
-                                            {currentLevel >= puzzle.id ? '✓' : puzzle.id}
-                                        </div>
-                                        <div className="flex-1">
-                                            <div className="font-medium text-[#355485]">{puzzle.title}</div>
-                                            <div className="text-sm text-[#6b7280]">{puzzle.pieces.length} potongan</div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Action Buttons */}
-                        <div className="flex gap-4 mb-12">
-                            <button
-                                onClick={() => {
-                                    setGamePhase('start');
-                                    setPlayerName('');
-                                }}
-                                className="flex-1 py-4 px-6 rounded-2xl border-2 border-[#cbdde9] text-[#355485] 
-                         font-bold hover:border-purple-500 transition-all duration-300 hover:scale-105"
-                            >
-                                ← Game Baru
-                            </button>
-                            <button
-                                onClick={restartGame}
-                                className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 
-                         hover:to-pink-600 text-white font-bold py-4 px-6 rounded-2xl 
-                         transition-all duration-300 hover:scale-105"
-                            >
-                                🔁 Main Lagi
-                            </button>
-                        </div>
-
-                        {/* History Section */}
-                        {gameHistory.length > 0 && (
-                            <div className="border-t border-[#e5e7eb] pt-10">
-                                <h3 className="text-xl font-bold text-[#355485] mb-6 flex items-center gap-2">
-                                    <span>📊</span> Riwayat Puzzle
-                                </h3>
+                                
                                 <div className="space-y-4">
                                     {gameHistory.slice(0, 5).map((history, index) => (
                                         <div
                                             key={history.id}
-                                            className={`bg-white rounded-xl p-4 border ${index === 0 ? 'border-purple-500 shadow-md' : 'border-[#e5e7eb]'}`}
+                                            className={`p-4 rounded-xl border-2 transition-all hover:shadow-md ${index === 0 ? 'border-[#F59E0B] bg-gradient-to-r from-[#fef3c7] to-white' : 'border-[#e5e7eb] bg-[#f9fafb]'}`}
                                         >
                                             <div className="flex justify-between items-center">
-                                                <div>
-                                                    <div className="font-semibold text-[#355485]">{history.playerName}</div>
-                                                    <div className="text-sm text-[#9ca3af]">{history.date} • {history.time}</div>
+                                                <div className="flex items-center gap-3">
+                                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${index === 0 ? 'bg-gradient-to-br from-[#F59E0B] to-[#355485] text-white' : 'bg-[#cbdde9] text-[#355485]'}`}>
+                                                        {index + 1}
+                                                    </div>
+                                                    <div>
+                                                        <div className="font-bold text-[#355485]">{history.playerName}</div>
+                                                        <div className="text-sm text-[#9ca3af]">
+                                                            {history.date} • {history.time}
+                                                        </div>
+                                                    </div>
+                                                    {index === 0 && (
+                                                        <span className="text-xs bg-[#F59E0B] text-white px-3 py-1 rounded-full animate-pulse">
+                                                            TERBARU
+                                                        </span>
+                                                    )}
                                                 </div>
                                                 <div className="text-right">
-                                                    <div className="text-xl font-bold text-purple-500">{history.score}</div>
+                                                    <div className={`text-2xl font-bold ${history.score >= 70 ? 'text-green-600' : 'text-red-600'}`}>
+                                                        {history.score}
+                                                    </div>
                                                     <div className="text-sm text-[#9ca3af]">
-                                                        Level {history.levelReached} • {history.moves} langkah
+                                                        {history.correctAnswers}/10
                                                     </div>
                                                 </div>
                                             </div>
-                                            {index === 0 && (
-                                                <div className="mt-2 text-center">
-                                                    <span className="inline-block bg-gradient-to-r from-purple-500 to-pink-500 text-white px-3 py-1 rounded-full text-xs">
-                                                        🧩 Paling Baru
-                                                    </span>
-                                                </div>
-                                            )}
                                         </div>
                                     ))}
                                 </div>
                             </div>
-                        )}
-                    </>
-                );
+                        </div>
 
-            default:
-                return null;
-        }
-    };
+                        {/* Action Buttons */}
+                        <div className="flex flex-col sm:flex-row gap-4 mb-8">
+                            <button
+                                onClick={restartGame}
+                                className="flex-1 bg-gradient-to-r from-[#F59E0B] to-[#355485] hover:from-[#D97706] hover:to-[#2a436c] text-white font-bold py-5 px-8 rounded-xl transition-all duration-300 transform hover:scale-[1.02] shadow-2xl"
+                            >
+                                <span className="flex items-center justify-center gap-3 text-lg">
+                                    <span className="text-2xl">🔄</span>
+                                    MAIN LAGI
+                                </span>
+                            </button>
+                            <button
+                                onClick={() => setGameStatus('start')}
+                                className="flex-1 border-2 border-[#F59E0B] hover:border-[#355485] text-[#F59E0B] hover:text-[#355485] font-bold py-5 px-8 rounded-xl transition-all duration-300 transform hover:scale-[1.02]"
+                            >
+                                <span className="flex items-center justify-center gap-3 text-lg">
+                                    <span className="text-2xl">🏠</span>
+                                    MENU UTAMA
+                                </span>
+                            </button>
+                        </div>
 
+                        <div className="text-center">
+                            <button
+                                onClick={toggleFullscreen}
+                                className="border-2 border-[#e5e7eb] hover:border-[#9ca3af] hover:bg-white text-[#6b7280] py-3 px-6 rounded-xl transition-all duration-300 hover:scale-[1.02] flex items-center gap-2 mx-auto"
+                            >
+                                <span className="text-xl">{isFullscreen ? '📱' : '🖥️'}</span>
+                                {isFullscreen ? 'Keluar Fullscreen' : 'Mode Layar Penuh'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </>
+        );
+    }
+
+    // Loading state
     return (
-        <div className="bg-gradient-to-br from-[#f9fafb] to-white rounded-3xl shadow-2xl p-8">
-            {renderContent()}
-        </div>
+        <>
+            <audio ref={audioBenarRef} src="/audio/sound-benar.mp3" preload="auto" />
+            <audio ref={audioSalahRef} src="/audio/sound-salah.mp3" preload="auto" />
+            <audio ref={audioBerhasilRef} src="/audio/sound-berhasil.mp3" preload="auto" />
+            <audio ref={audioGagalRef} src="/audio/sound-gagal.mp3" preload="auto" />
+            <audio ref={audioKlikRef} src="/audio/klik.mp3" preload="auto" />
+
+            <div
+                ref={gameContainerRef}
+                className={`min-h-screen bg-gradient-to-b from-[#cbdde9] to-[#f9fafb] flex items-center justify-center ${isFullscreen ? 'p-4' : ''}`}
+            >
+                <div className={`text-center ${isFullscreen ? 'max-w-[800px] w-full' : ''}`}>
+                    <div className="relative">
+                        <div className="w-24 h-24 border-4 border-[#cbdde9] border-t-[#F59E0B] rounded-full animate-spin mx-auto mb-4" />
+                        <div className="absolute inset-0 flex items-center justify-center">
+                            <span className="text-3xl">🧩</span>
+                        </div>
+                    </div>
+                    <h3 className="text-xl font-bold text-[#355485] mb-2">Menyiapkan Puzzle...</h3>
+                    <p className="text-[#6b7280]">Puzzle mudah sedang diacak untukmu</p>
+                </div>
+            </div>
+        </>
     );
 };
 
-export default Game3PuzzleBentuk;
+export default GamePuzzleBentukMudah;

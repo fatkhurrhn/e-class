@@ -1,4 +1,4 @@
-// src/components/bab8/MateriTab.jsx
+// src/components/bab4/MateriTab.jsx
 import React from 'react';
 
 const MateriTab = ({
@@ -25,7 +25,7 @@ const MateriTab = ({
                 <div className="bg-white rounded-2xl border border-[#e5e7eb] overflow-hidden">
                     <div className="bg-gradient-to-r from-[#355485] to-[#2a436c] text-white p-6">
                         <h3 className="text-xl font-bold">Kompetensi Dasar</h3>
-                        <p className="opacity-90">Mengenal berbagai bentuk geometri dan penerapannya</p>
+                        <p className="opacity-90">Mengenal berbagai pengurangan sederhana dan penerapannya</p>
                     </div>
                     <div className="p-6">
                         <ul className="space-y-4">

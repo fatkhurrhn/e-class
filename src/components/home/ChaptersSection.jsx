@@ -156,7 +156,7 @@ export default function ChaptersSection({ searchQuery }) {
             level: "Menengah",
             gameCount: 6,
             completed: false,
-            link: "/s1/bab5",
+            link: "/s2/bab5",
             semester: 2
         },
         {
@@ -170,7 +170,7 @@ export default function ChaptersSection({ searchQuery }) {
             level: "Menengah",
             gameCount: 7,
             completed: false,
-            link: "/s1/bab6",
+            link: "/s2/bab6",
             semester: 2
         },
         {
@@ -184,7 +184,7 @@ export default function ChaptersSection({ searchQuery }) {
             level: "Menengah",
             gameCount: 5,
             completed: false,
-            link: "/s1/bab7",
+            link: "/s2/bab7",
             semester: 2
         },
         {
@@ -198,7 +198,7 @@ export default function ChaptersSection({ searchQuery }) {
             level: "Lanjutan",
             gameCount: 4,
             completed: false,
-            link: "/s1/bab8",
+            link: "/s2/bab8",
             semester: 2
         },
     ];

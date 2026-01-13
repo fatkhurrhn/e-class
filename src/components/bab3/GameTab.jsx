@@ -1,4 +1,4 @@
-// src/components/bab8/GameTab.jsx
+// src/components/bab4/GameTab.jsx
 import React from 'react';
 
 const GameTab = ({
@@ -15,7 +15,7 @@ const GameTab = ({
                     <span>🕹️</span>
                     Pilih Permainan
                 </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
                     {gameComponents.map((game) => (
                         <button
                             key={game.id}
@@ -116,8 +116,9 @@ const GameTab = ({
                         Tentang Game Ini
                     </h3>
                     <p className="text-[#6b7280]">
-                        {activeGame === 1 && "Pada permainan ini, siswa berlatih mengelompokkan data berdasarkan informasi yang ditampilkan dalam diagram gambar. Kegiatan ini membantu memahami bagaimana suatu data dapat dikelompokkan dan dihitung melalui simbol-simbol yang digunakan dalam piktogram sederhana."}
-                        {activeGame === 2 && "Permainan ini mengajak siswa membaca serta menafsirkan piktogram. Dengan menganalisis simbol yang mewakili jumlah tertentu, siswa belajar memahami data secara visual dan menarik."}
+                                 {activeGame === 1 && "Game ini membantu siswa memahami konsep pengurangan sampai 10. Siswa belajar bahwa pengurangan berarti mengambil atau mengurangi sejumlah benda dari total yang ada melalui gambar hewan dan buah."}
+                                 {activeGame === 2 && "Game ini melatih kemampuan siswa menghitung sisa benda setelah dikurangi. Dengan mengamati gambar dan jumlahnya, siswa belajar mengurangi secara bertahap dan tepat."}
+                                 {activeGame === 3 && "Game puzzle pengurangan yang melatih logika dan konsentrasi siswa dengan menentukan jawaban yang benar dari hasil pengurangan sederhana."}
                     </p>
 
                 </div>

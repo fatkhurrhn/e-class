@@ -1,4 +1,4 @@
-// src/components/bab8/GameTab.jsx
+// src/components/bab4/GameTab.jsx
 import React from 'react';
 
 const GameTab = ({
@@ -15,7 +15,7 @@ const GameTab = ({
                     <span>🕹️</span>
                     Pilih Permainan
                 </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
                     {gameComponents.map((game) => (
                         <button
                             key={game.id}
@@ -116,8 +116,9 @@ const GameTab = ({
                         Tentang Game Ini
                     </h3>
                     <p className="text-[#6b7280]">
-                        {activeGame === 1 && "Pada permainan ini, siswa berlatih mengelompokkan data berdasarkan informasi yang ditampilkan dalam diagram gambar. Kegiatan ini membantu memahami bagaimana suatu data dapat dikelompokkan dan dihitung melalui simbol-simbol yang digunakan dalam piktogram sederhana."}
-                        {activeGame === 2 && "Permainan ini mengajak siswa membaca serta menafsirkan piktogram. Dengan menganalisis simbol yang mewakili jumlah tertentu, siswa belajar memahami data secara visual dan menarik."}
+                        {activeGame === 1 &&  "Game ini membantu siswa memahami konsep penjumlahan sampai 20 melalui penggabungan jumlah benda seperti hewan dan buah. Siswa belajar menghitung total secara bertahap dengan bantuan gambar visual yang mudah dipahami."}
+                        {activeGame === 2 && "Game ini melatih kemampuan pengurangan sampai 20 dengan cara mengurangi jumlah benda dari total yang tersedia. Melalui ilustrasi sederhana, siswa belajar menentukan sisa jumlah secara logis dan menyenangkan."}
+                        {activeGame === 3 && "Game ini menggabungkan penjumlahan dan pengurangan sampai 20 dalam bentuk puzzle interaktif. Siswa dilatih berpikir logis untuk menyelesaikan soal dengan memilih jawaban yang tepat berdasarkan gambar."}
                     </p>
 
                 </div>

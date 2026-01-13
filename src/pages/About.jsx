@@ -27,11 +27,6 @@ export default function About() {
             name: "Dimas",
             role: "Frontend Developer",
             description: "Mengimplementasikan design dan interaksi pengguna"
-        },
-        {
-            name: "Rega",
-            role: "Game Developer & Educational Specialist",
-            description: "Mengembangkan game edukatif dan memastikan kesesuaian dengan kurikulum"
         }
     ];
 
@@ -129,7 +124,7 @@ export default function About() {
                         </p>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {teamMembers.map((member, index) => (
                             <div
                                 key={index}

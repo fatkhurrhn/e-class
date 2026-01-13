@@ -1,5 +1,35 @@
 [
   {
+    "title": "Bab 3 - pengurangan sampai 10",
+    "description": "lorem ipsem",
+    "keywords": [
+      "bangun datar",
+      "segitiga",
+      "persegi",
+      "lingkaran",
+      "geometri",
+      "bentuk"
+    ],
+    "type": "chapter",
+    "chapter": "Bab 3",
+    "path": "/s1/bab3"
+  },
+  {
+    "title": "Bab 3 - pengurangan sampai 10",
+    "description": "lorem ipsem",
+    "keywords": [
+      "bangun datar",
+      "segitiga",
+      "persegi",
+      "lingkaran",
+      "geometri",
+      "bentuk"
+    ],
+    "type": "chapter",
+    "chapter": "Bab 6",
+    "path": "/s2/bab6"
+  },
+  {
     "title": "Bab 4 - Mengenal Bentuk",
     "description": "Belajar mengenal berbagai bentuk geometri melalui permainan seru",
     "keywords": [
@@ -13,6 +43,21 @@
     "type": "chapter",
     "chapter": "Bab 4",
     "path": "/s1/bab4"
+  },
+  {
+    "title": "Bab 8 - Mengenal Diagram",
+    "description": "Belajar memahami dan membaca berbagai jenis diagram melalui permainan seru",
+    "keywords": [
+      "diagram",
+      "diagram gambar",
+      "diagram batang",
+      "data",
+      "tabel",
+      "grafik"
+    ],
+    "type": "chapter",
+    "chapter": "Bab 8",
+    "path": "/s2/bab8"
   },
   {
     "title": "Bab2",
@@ -36,15 +81,8 @@
     "keywords": []
   },
   {
-    "title": "Bab8",
-    "path": "/bab8/IndexBab8",
-    "type": "page",
-    "description": "",
-    "keywords": []
-  },
-  {
-    "title": "Bab8 /",
-    "path": "/s2/bab8",
+    "title": "Bab7 /",
+    "path": "/s2/bab7",
     "type": "page",
     "description": "",
     "keywords": []
@@ -66,146 +104,6 @@
   {
     "title": "Home",
     "path": "/HomePage",
-    "type": "page",
-    "description": "",
-    "keywords": []
-  },
-  {
-    "title": "Percobaan1",
-    "path": "/percobaan/Percobaan1",
-    "type": "page",
-    "description": "",
-    "keywords": []
-  },
-  {
-    "title": "Percobaan1 /",
-    "path": "/p1",
-    "type": "page",
-    "description": "",
-    "keywords": []
-  },
-  {
-    "title": "Percobaan10",
-    "path": "/percobaan/Percobaan10",
-    "type": "page",
-    "description": "",
-    "keywords": []
-  },
-  {
-    "title": "Percobaan10 /",
-    "path": "/p10",
-    "type": "page",
-    "description": "",
-    "keywords": []
-  },
-  {
-    "title": "Percobaan2",
-    "path": "/percobaan/Percobaan2",
-    "type": "page",
-    "description": "",
-    "keywords": []
-  },
-  {
-    "title": "Percobaan2 /",
-    "path": "/p2",
-    "type": "page",
-    "description": "",
-    "keywords": []
-  },
-  {
-    "title": "Percobaan3",
-    "path": "/percobaan/Percobaan3",
-    "type": "page",
-    "description": "",
-    "keywords": []
-  },
-  {
-    "title": "Percobaan3 /",
-    "path": "/p3",
-    "type": "page",
-    "description": "",
-    "keywords": []
-  },
-  {
-    "title": "Percobaan4",
-    "path": "/percobaan/Percobaan4",
-    "type": "page",
-    "description": "",
-    "keywords": []
-  },
-  {
-    "title": "Percobaan4 /",
-    "path": "/p4",
-    "type": "page",
-    "description": "",
-    "keywords": []
-  },
-  {
-    "title": "Percobaan5",
-    "path": "/percobaan/Percobaan5",
-    "type": "page",
-    "description": "",
-    "keywords": []
-  },
-  {
-    "title": "Percobaan5 /",
-    "path": "/p5",
-    "type": "page",
-    "description": "",
-    "keywords": []
-  },
-  {
-    "title": "Percobaan6",
-    "path": "/percobaan/Percobaan6",
-    "type": "page",
-    "description": "",
-    "keywords": []
-  },
-  {
-    "title": "Percobaan6 /",
-    "path": "/p6",
-    "type": "page",
-    "description": "",
-    "keywords": []
-  },
-  {
-    "title": "Percobaan7",
-    "path": "/percobaan/Percobaan7",
-    "type": "page",
-    "description": "",
-    "keywords": []
-  },
-  {
-    "title": "Percobaan7 /",
-    "path": "/p7",
-    "type": "page",
-    "description": "",
-    "keywords": []
-  },
-  {
-    "title": "Percobaan8",
-    "path": "/percobaan/Percobaan8",
-    "type": "page",
-    "description": "",
-    "keywords": []
-  },
-  {
-    "title": "Percobaan8 /",
-    "path": "/p8",
-    "type": "page",
-    "description": "",
-    "keywords": []
-  },
-  {
-    "title": "Percobaan9",
-    "path": "/percobaan/Percobaan9",
-    "type": "page",
-    "description": "",
-    "keywords": []
-  },
-  {
-    "title": "Percobaan9 /",
-    "path": "/p9",
     "type": "page",
     "description": "",
     "keywords": []

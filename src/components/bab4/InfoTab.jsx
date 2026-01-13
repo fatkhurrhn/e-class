@@ -178,7 +178,7 @@ const InfoTab = ({ gameComponents, activeGame, setActiveGame, setActiveTab }) =>
             </div>
 
             {/* Quick Stats */}
-            <div className="bg-gradient-to-r from-[#f0f7ff] to-[#e3f2fd] rounded-2xl p-8">
+            {/* <div className="bg-gradient-to-r from-[#f0f7ff] to-[#e3f2fd] rounded-2xl p-8">
                 <h3 className="text-2xl font-bold text-[#355485] mb-6 text-center">📊 Bab 4 dalam Angka</h3>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                     <div className="text-center">
@@ -198,7 +198,7 @@ const InfoTab = ({ gameComponents, activeGame, setActiveGame, setActiveTab }) =>
                         <div className="text-sm text-[#6b7280]">Estimasi Belajar</div>
                     </div>
                 </div>
-            </div>
+            </div> */}
         </div>
     );
 };
