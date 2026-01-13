@@ -15,6 +15,27 @@
     "path": "/s1/bab4"
   },
   {
+    "title": "Bab2",
+    "path": "/bab2/IndexBab2",
+    "type": "page",
+    "description": "",
+    "keywords": []
+  },
+  {
+    "title": "Bab2 /",
+    "path": "/s1/bab2",
+    "type": "page",
+    "description": "",
+    "keywords": []
+  },
+  {
+    "title": "Bab7",
+    "path": "/bab7/IndexBab7",
+    "type": "page",
+    "description": "",
+    "keywords": []
+  },
+  {
     "title": "Bab8",
     "path": "/bab8/IndexBab8",
     "type": "page",

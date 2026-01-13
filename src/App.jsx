@@ -16,7 +16,9 @@ import Percobaan8 from './pages/percobaan/Percobaan8';
 import Percobaan9 from './pages/percobaan/Percobaan9';
 import Percobaan10 from './pages/percobaan/Percobaan10';
 import About from './pages/About';
+import IndexBab2 from './pages/bab2/IndexBab2';
 import IndexBab4 from './pages/bab4/IndexBab4';
+import IndexBab7 from './pages/bab7/IndexBab7';
 import IndexBab8 from './pages/bab8/IndexBab8';
 function App() {
   return (
@@ -28,7 +30,13 @@ function App() {
         <Route path="/tentang" element={<About />} />
 
         {/* route semester 1 */}
+        <Route path="/s1/bab2" element={<IndexBab2 />} />
+
+        {/* route semester 1 */}
         <Route path="/s1/bab4" element={<IndexBab4 />} />
+
+        {/* route semester 2 */}
+        <Route path="/s2/bab7" element={<IndexBab7 />} />
 
         {/* route semester 2 */}
         <Route path="/s2/bab8" element={<IndexBab8 />} />
